@@ -1,0 +1,2740 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "username": "admin_user",
+      "fullname": "Admin User",
+      "role": "admin",
+      "password": "123456",
+      "email": "Baby_Deckow@hotmail.com",
+      "phoneNumber": "1-249-743-8892 x89386",
+      "isActive": true,
+      "createdAt": "2024-05-04T16:10:42.974Z",
+      "updatedAt": "2025-03-12T01:04:45.684Z"
+    },
+    {
+      "id": "user2",
+      "username": "cashier_user",
+      "fullname": "Cashier User",
+      "role": "cashier",
+      "password": "123456",
+      "email": "Verla60@gmail.com",
+      "phoneNumber": "1-520-631-5507 x08700",
+      "isActive": true,
+      "createdAt": "2024-07-13T23:12:40.509Z",
+      "updatedAt": "2025-03-11T21:59:18.139Z"
+    },
+    {
+      "id": "user3",
+      "username": "server_user",
+      "fullname": "Server User",
+      "role": "serve",
+      "password": "123456",
+      "email": "Enos.Heaney-Kovacek75@hotmail.com",
+      "phoneNumber": "641-303-2859 x0524",
+      "isActive": true,
+      "createdAt": "2024-11-20T06:16:26.548Z",
+      "updatedAt": "2025-03-12T04:33:20.158Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat1",
+      "name": "Drinks"
+    },
+    {
+      "id": "cat2",
+      "name": "Food"
+    }
+  ],
+  "subCategories": [
+    {
+      "id": "1",
+      "name": "Coffee",
+      "category": "cat2",
+      "items": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Tea",
+      "category": "cat2",
+      "items": [
+        "4",
+        "5"
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Juice",
+      "category": "cat2",
+      "items": [
+        "6",
+        "7",
+        "8"
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Smoothies",
+      "category": "cat2",
+      "items": [
+        "9",
+        "10"
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Pastries",
+      "category": "cat2",
+      "items": [
+        "11",
+        "12",
+        "13",
+        "14"
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Sandwiches",
+      "category": "cat2",
+      "items": [
+        "15",
+        "16",
+        "17"
+      ]
+    },
+    {
+      "id": "7",
+      "name": "Salads",
+      "category": "cat2",
+      "items": [
+        "18"
+      ]
+    }
+  ],
+  "menuItems": [
+    {
+      "id": "1",
+      "name": "Small Granite Mouse",
+      "price": 3.19,
+      "subCategory": "1",
+      "isAvailable": true
+    },
+    {
+      "id": "2",
+      "name": "Modern Fresh Bacon",
+      "price": 12.49,
+      "subCategory": "1",
+      "isAvailable": true
+    },
+    {
+      "id": "3",
+      "name": "Intelligent Granite Towels",
+      "price": 13.79,
+      "subCategory": "1",
+      "isAvailable": true
+    },
+    {
+      "id": "4",
+      "name": "Unbranded Concrete Shirt",
+      "price": 10.16,
+      "subCategory": "2",
+      "isAvailable": true
+    },
+    {
+      "id": "5",
+      "name": "Electronic Rubber Towels",
+      "price": 8.99,
+      "subCategory": "2",
+      "isAvailable": true
+    },
+    {
+      "id": "6",
+      "name": "Tasty Metal Chair",
+      "price": 8.85,
+      "subCategory": "3",
+      "isAvailable": true
+    },
+    {
+      "id": "7",
+      "name": "Ergonomic Bronze Shoes",
+      "price": 12.15,
+      "subCategory": "3",
+      "isAvailable": true
+    },
+    {
+      "id": "8",
+      "name": "Handmade Rubber Computer",
+      "price": 12.29,
+      "subCategory": "3",
+      "isAvailable": true
+    },
+    {
+      "id": "9",
+      "name": "Sleek Steel Car",
+      "price": 12.69,
+      "subCategory": "4",
+      "isAvailable": true
+    },
+    {
+      "id": "10",
+      "name": "Sleek Concrete Shoes",
+      "price": 10.45,
+      "subCategory": "4",
+      "isAvailable": true
+    },
+    {
+      "id": "11",
+      "name": "Handmade Soft Chips",
+      "price": 7.9,
+      "subCategory": "5",
+      "isAvailable": true
+    },
+    {
+      "id": "12",
+      "name": "Refined Cotton Pizza",
+      "price": 2.3,
+      "subCategory": "5",
+      "isAvailable": true
+    },
+    {
+      "id": "13",
+      "name": "Small Granite Gloves",
+      "price": 6.65,
+      "subCategory": "5",
+      "isAvailable": true
+    },
+    {
+      "id": "14",
+      "name": "Tasty Plastic Computer",
+      "price": 2.99,
+      "subCategory": "5",
+      "isAvailable": true
+    },
+    {
+      "id": "15",
+      "name": "Intelligent Concrete Table",
+      "price": 9.9,
+      "subCategory": "6",
+      "isAvailable": true
+    },
+    {
+      "id": "16",
+      "name": "Handmade Plastic Bacon",
+      "price": 11.55,
+      "subCategory": "6",
+      "isAvailable": true
+    },
+    {
+      "id": "17",
+      "name": "Rustic Frozen Car",
+      "price": 12.59,
+      "subCategory": "6",
+      "isAvailable": true
+    },
+    {
+      "id": "18",
+      "name": "Handmade Fresh Pants",
+      "price": 2.65,
+      "subCategory": "7",
+      "isAvailable": true
+    }
+  ],
+  "areaTables": [
+    {
+      "id": "1",
+      "name": "Main Room",
+      "tables": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Patio",
+      "tables": [
+        "3",
+        "4",
+        "5"
+      ]
+    }
+  ],
+  "tables": [
+    {
+      "id": "1",
+      "tableName": "MainRoom1",
+      "status": "occupied",
+      "areaId": "1"
+    },
+    {
+      "id": "2",
+      "tableName": "MainRoom2",
+      "status": "free",
+      "areaId": "1"
+    },
+    {
+      "id": "3",
+      "tableName": "Patio3",
+      "status": "occupied",
+      "areaId": "2"
+    },
+    {
+      "id": "4",
+      "tableName": "Patio4",
+      "status": "free",
+      "areaId": "2"
+    },
+    {
+      "id": "5",
+      "tableName": "Patio5",
+      "status": "free",
+      "areaId": "2"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order1",
+      "tableId": "1",
+      "orderStatus": "completed",
+      "timestamp": "2025-03-12T07:20:42.471Z",
+      "orderItems": [
+        {
+          "id": "orderItem10",
+          "orderId": "order1",
+          "menuItemId": "4",
+          "quantity": 1,
+          "price": 10.16
+        }
+      ]
+    },
+    {
+      "id": "order2",
+      "tableId": "3",
+      "orderStatus": "completed",
+      "timestamp": "2025-03-12T00:14:17.568Z",
+      "orderItems": [
+        {
+          "id": "orderItem21",
+          "orderId": "order2",
+          "menuItemId": "17",
+          "quantity": 3,
+          "price": 12.59
+        },
+        {
+          "id": "orderItem21",
+          "orderId": "order2",
+          "menuItemId": "5",
+          "quantity": 1,
+          "price": 8.99
+        },
+        {
+          "id": "orderItem21",
+          "orderId": "order2",
+          "menuItemId": "9",
+          "quantity": 3,
+          "price": 12.69
+        }
+      ]
+    },
+    {
+      "id": "order3",
+      "tableId": "3",
+      "orderStatus": "completed",
+      "timestamp": "2025-03-12T12:19:55.466Z",
+      "orderItems": [
+        {
+          "id": "orderItem32",
+          "orderId": "order3",
+          "menuItemId": "5",
+          "quantity": 3,
+          "price": 8.99
+        }
+      ]
+    },
+    {
+      "id": "order4",
+      "tableId": "2",
+      "orderStatus": "completed",
+      "timestamp": "2025-03-12T15:47:34.739Z",
+      "orderItems": [
+        {
+          "id": "orderItem43",
+          "orderId": "order4",
+          "menuItemId": "4",
+          "quantity": 3,
+          "price": 10.16
+        }
+      ]
+    }
+  ],
+  "orderHistory": [
+    {
+      "id": "history1",
+      "orderId": "history1",
+      "tableId": "1",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-02-26T02:25:44.467Z",
+      "servedAt": "2025-02-26T02:43:28.161Z",
+      "completedAt": "2025-02-26T02:49:14.407Z",
+      "orderItems": [
+        {
+          "id": "historyItem10",
+          "orderId": "history1",
+          "menuItemId": "4",
+          "quantity": 1,
+          "price": 10.16
+        },
+        {
+          "id": "historyItem10",
+          "orderId": "history1",
+          "menuItemId": "7",
+          "quantity": 3,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem10",
+          "orderId": "history1",
+          "menuItemId": "13",
+          "quantity": 2,
+          "price": 6.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history2",
+      "orderId": "history2",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-02-26T00:27:17.119Z",
+      "servedAt": "2025-02-26T00:35:06.507Z",
+      "completedAt": "2025-02-26T00:52:28.213Z",
+      "orderItems": [
+        {
+          "id": "historyItem21",
+          "orderId": "history2",
+          "menuItemId": "18",
+          "quantity": 3,
+          "price": 2.65
+        },
+        {
+          "id": "historyItem21",
+          "orderId": "history2",
+          "menuItemId": "8",
+          "quantity": 1,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history3",
+      "orderId": "history3",
+      "tableId": "1",
+      "paymentMethod": "cash",
+      "createdAt": "2025-02-26T06:31:25.525Z",
+      "servedAt": "2025-02-26T06:50:51.454Z",
+      "completedAt": "2025-02-26T07:00:19.756Z",
+      "orderItems": [
+        {
+          "id": "historyItem32",
+          "orderId": "history3",
+          "menuItemId": "13",
+          "quantity": 2,
+          "price": 6.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history4",
+      "orderId": "history4",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-02-26T01:08:40.215Z",
+      "servedAt": "2025-02-26T01:09:47.502Z",
+      "completedAt": "2025-02-26T01:39:31.147Z",
+      "orderItems": [
+        {
+          "id": "historyItem43",
+          "orderId": "history4",
+          "menuItemId": "17",
+          "quantity": 1,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem43",
+          "orderId": "history4",
+          "menuItemId": "13",
+          "quantity": 2,
+          "price": 6.65
+        },
+        {
+          "id": "historyItem43",
+          "orderId": "history4",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history5",
+      "orderId": "history5",
+      "tableId": "4",
+      "paymentMethod": "cash",
+      "createdAt": "2025-02-27T03:30:14.698Z",
+      "servedAt": "2025-02-27T03:54:45.209Z",
+      "completedAt": "2025-02-27T04:18:29.104Z",
+      "orderItems": [
+        {
+          "id": "historyItem50",
+          "orderId": "history5",
+          "menuItemId": "17",
+          "quantity": 1,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem50",
+          "orderId": "history5",
+          "menuItemId": "16",
+          "quantity": 1,
+          "price": 11.55
+        },
+        {
+          "id": "historyItem50",
+          "orderId": "history5",
+          "menuItemId": "7",
+          "quantity": 2,
+          "price": 12.15
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history6",
+      "orderId": "history6",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-02-28T13:05:56.460Z",
+      "servedAt": "2025-02-28T13:26:13.195Z",
+      "completedAt": "2025-02-28T14:14:16.621Z",
+      "orderItems": [
+        {
+          "id": "historyItem60",
+          "orderId": "history6",
+          "menuItemId": "5",
+          "quantity": 3,
+          "price": 8.99
+        },
+        {
+          "id": "historyItem60",
+          "orderId": "history6",
+          "menuItemId": "9",
+          "quantity": 1,
+          "price": 12.69
+        },
+        {
+          "id": "historyItem60",
+          "orderId": "history6",
+          "menuItemId": "9",
+          "quantity": 1,
+          "price": 12.69
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history7",
+      "orderId": "history7",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-02-28T12:50:47.502Z",
+      "servedAt": "2025-02-28T13:16:30.975Z",
+      "completedAt": "2025-02-28T13:52:39.922Z",
+      "orderItems": [
+        {
+          "id": "historyItem71",
+          "orderId": "history7",
+          "menuItemId": "12",
+          "quantity": 2,
+          "price": 2.3
+        },
+        {
+          "id": "historyItem71",
+          "orderId": "history7",
+          "menuItemId": "13",
+          "quantity": 2,
+          "price": 6.65
+        },
+        {
+          "id": "historyItem71",
+          "orderId": "history7",
+          "menuItemId": "3",
+          "quantity": 2,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history8",
+      "orderId": "history8",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-02-28T05:06:16.481Z",
+      "servedAt": "2025-02-28T05:21:17.374Z",
+      "completedAt": "2025-02-28T05:48:13.616Z",
+      "orderItems": [
+        {
+          "id": "historyItem82",
+          "orderId": "history8",
+          "menuItemId": "9",
+          "quantity": 3,
+          "price": 12.69
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history9",
+      "orderId": "history9",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-02-28T15:18:16.107Z",
+      "servedAt": "2025-02-28T15:31:22.873Z",
+      "completedAt": "2025-02-28T15:52:54.687Z",
+      "orderItems": [
+        {
+          "id": "historyItem93",
+          "orderId": "history9",
+          "menuItemId": "6",
+          "quantity": 1,
+          "price": 8.85
+        },
+        {
+          "id": "historyItem93",
+          "orderId": "history9",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history10",
+      "orderId": "history10",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-02T00:38:14.637Z",
+      "servedAt": "2025-03-02T00:43:59.905Z",
+      "completedAt": "2025-03-02T01:37:22.034Z",
+      "orderItems": [
+        {
+          "id": "historyItem100",
+          "orderId": "history10",
+          "menuItemId": "3",
+          "quantity": 3,
+          "price": 13.79
+        },
+        {
+          "id": "historyItem100",
+          "orderId": "history10",
+          "menuItemId": "6",
+          "quantity": 1,
+          "price": 8.85
+        },
+        {
+          "id": "historyItem100",
+          "orderId": "history10",
+          "menuItemId": "1",
+          "quantity": 1,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history11",
+      "orderId": "history11",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-02T05:03:32.383Z",
+      "servedAt": "2025-03-02T05:06:12.356Z",
+      "completedAt": "2025-03-02T05:45:57.499Z",
+      "orderItems": [
+        {
+          "id": "historyItem111",
+          "orderId": "history11",
+          "menuItemId": "4",
+          "quantity": 3,
+          "price": 10.16
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history12",
+      "orderId": "history12",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-02T13:02:20.075Z",
+      "servedAt": "2025-03-02T13:30:31.082Z",
+      "completedAt": "2025-03-02T13:56:46.834Z",
+      "orderItems": [
+        {
+          "id": "historyItem122",
+          "orderId": "history12",
+          "menuItemId": "7",
+          "quantity": 3,
+          "price": 12.15
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history13",
+      "orderId": "history13",
+      "tableId": "4",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-03T05:34:48.077Z",
+      "servedAt": "2025-03-03T05:53:45.823Z",
+      "completedAt": "2025-03-03T06:48:08.305Z",
+      "orderItems": [
+        {
+          "id": "historyItem130",
+          "orderId": "history13",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history14",
+      "orderId": "history14",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-03T06:24:48.858Z",
+      "servedAt": "2025-03-03T06:38:00.952Z",
+      "completedAt": "2025-03-03T06:52:22.497Z",
+      "orderItems": [
+        {
+          "id": "historyItem141",
+          "orderId": "history14",
+          "menuItemId": "11",
+          "quantity": 1,
+          "price": 7.9
+        },
+        {
+          "id": "historyItem141",
+          "orderId": "history14",
+          "menuItemId": "11",
+          "quantity": 2,
+          "price": 7.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history15",
+      "orderId": "history15",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-03T13:09:04.884Z",
+      "servedAt": "2025-03-03T13:13:57.744Z",
+      "completedAt": "2025-03-03T14:08:38.183Z",
+      "orderItems": [
+        {
+          "id": "historyItem152",
+          "orderId": "history15",
+          "menuItemId": "18",
+          "quantity": 3,
+          "price": 2.65
+        },
+        {
+          "id": "historyItem152",
+          "orderId": "history15",
+          "menuItemId": "14",
+          "quantity": 3,
+          "price": 2.99
+        },
+        {
+          "id": "historyItem152",
+          "orderId": "history15",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history16",
+      "orderId": "history16",
+      "tableId": "1",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-05T00:57:52.574Z",
+      "servedAt": "2025-03-05T01:11:13.690Z",
+      "completedAt": "2025-03-05T01:30:37.402Z",
+      "orderItems": [
+        {
+          "id": "historyItem160",
+          "orderId": "history16",
+          "menuItemId": "7",
+          "quantity": 1,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem160",
+          "orderId": "history16",
+          "menuItemId": "11",
+          "quantity": 2,
+          "price": 7.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history17",
+      "orderId": "history17",
+      "tableId": "2",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-05T00:57:31.793Z",
+      "servedAt": "2025-03-05T01:26:37.181Z",
+      "completedAt": "2025-03-05T02:07:21.326Z",
+      "orderItems": [
+        {
+          "id": "historyItem171",
+          "orderId": "history17",
+          "menuItemId": "15",
+          "quantity": 1,
+          "price": 9.9
+        },
+        {
+          "id": "historyItem171",
+          "orderId": "history17",
+          "menuItemId": "7",
+          "quantity": 2,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem171",
+          "orderId": "history17",
+          "menuItemId": "12",
+          "quantity": 1,
+          "price": 2.3
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history18",
+      "orderId": "history18",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-05T05:25:09.983Z",
+      "servedAt": "2025-03-05T05:52:55.268Z",
+      "completedAt": "2025-03-05T06:36:36.311Z",
+      "orderItems": [
+        {
+          "id": "historyItem182",
+          "orderId": "history18",
+          "menuItemId": "17",
+          "quantity": 2,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem182",
+          "orderId": "history18",
+          "menuItemId": "10",
+          "quantity": 3,
+          "price": 10.45
+        },
+        {
+          "id": "historyItem182",
+          "orderId": "history18",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history19",
+      "orderId": "history19",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-06T16:44:11.804Z",
+      "servedAt": "2025-03-06T16:46:18.906Z",
+      "completedAt": "2025-03-06T17:32:59.676Z",
+      "orderItems": [
+        {
+          "id": "historyItem190",
+          "orderId": "history19",
+          "menuItemId": "13",
+          "quantity": 3,
+          "price": 6.65
+        },
+        {
+          "id": "historyItem190",
+          "orderId": "history19",
+          "menuItemId": "8",
+          "quantity": 2,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history20",
+      "orderId": "history20",
+      "tableId": "4",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-06T01:56:31.238Z",
+      "servedAt": "2025-03-06T02:19:16.400Z",
+      "completedAt": "2025-03-06T02:33:24.349Z",
+      "orderItems": [
+        {
+          "id": "historyItem201",
+          "orderId": "history20",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        },
+        {
+          "id": "historyItem201",
+          "orderId": "history20",
+          "menuItemId": "17",
+          "quantity": 1,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem201",
+          "orderId": "history20",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history21",
+      "orderId": "history21",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-06T14:32:26.485Z",
+      "servedAt": "2025-03-06T14:48:22.137Z",
+      "completedAt": "2025-03-06T15:22:30.348Z",
+      "orderItems": [
+        {
+          "id": "historyItem212",
+          "orderId": "history21",
+          "menuItemId": "1",
+          "quantity": 3,
+          "price": 3.19
+        },
+        {
+          "id": "historyItem212",
+          "orderId": "history21",
+          "menuItemId": "12",
+          "quantity": 1,
+          "price": 2.3
+        },
+        {
+          "id": "historyItem212",
+          "orderId": "history21",
+          "menuItemId": "13",
+          "quantity": 3,
+          "price": 6.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history22",
+      "orderId": "history22",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-07T09:57:08.885Z",
+      "servedAt": "2025-03-07T10:20:12.000Z",
+      "completedAt": "2025-03-07T10:59:08.757Z",
+      "orderItems": [
+        {
+          "id": "historyItem220",
+          "orderId": "history22",
+          "menuItemId": "4",
+          "quantity": 3,
+          "price": 10.16
+        },
+        {
+          "id": "historyItem220",
+          "orderId": "history22",
+          "menuItemId": "15",
+          "quantity": 3,
+          "price": 9.9
+        },
+        {
+          "id": "historyItem220",
+          "orderId": "history22",
+          "menuItemId": "14",
+          "quantity": 1,
+          "price": 2.99
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history23",
+      "orderId": "history23",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-08T06:11:24.360Z",
+      "servedAt": "2025-03-08T06:33:57.858Z",
+      "completedAt": "2025-03-08T06:48:00.469Z",
+      "orderItems": [
+        {
+          "id": "historyItem230",
+          "orderId": "history23",
+          "menuItemId": "1",
+          "quantity": 3,
+          "price": 3.19
+        },
+        {
+          "id": "historyItem230",
+          "orderId": "history23",
+          "menuItemId": "5",
+          "quantity": 3,
+          "price": 8.99
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history24",
+      "orderId": "history24",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-09T16:27:50.246Z",
+      "servedAt": "2025-03-09T16:42:35.483Z",
+      "completedAt": "2025-03-09T17:27:05.580Z",
+      "orderItems": [
+        {
+          "id": "historyItem240",
+          "orderId": "history24",
+          "menuItemId": "10",
+          "quantity": 1,
+          "price": 10.45
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history25",
+      "orderId": "history25",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-09T05:10:31.872Z",
+      "servedAt": "2025-03-09T05:34:48.122Z",
+      "completedAt": "2025-03-09T06:04:58.977Z",
+      "orderItems": [
+        {
+          "id": "historyItem251",
+          "orderId": "history25",
+          "menuItemId": "18",
+          "quantity": 1,
+          "price": 2.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history26",
+      "orderId": "history26",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-09T16:42:34.736Z",
+      "servedAt": "2025-03-09T16:54:59.528Z",
+      "completedAt": "2025-03-09T17:21:01.109Z",
+      "orderItems": [
+        {
+          "id": "historyItem262",
+          "orderId": "history26",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history27",
+      "orderId": "history27",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-10T02:07:12.037Z",
+      "servedAt": "2025-03-10T02:12:12.415Z",
+      "completedAt": "2025-03-10T03:00:37.398Z",
+      "orderItems": [
+        {
+          "id": "historyItem270",
+          "orderId": "history27",
+          "menuItemId": "9",
+          "quantity": 2,
+          "price": 12.69
+        },
+        {
+          "id": "historyItem270",
+          "orderId": "history27",
+          "menuItemId": "3",
+          "quantity": 2,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history28",
+      "orderId": "history28",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-11T15:24:43.170Z",
+      "servedAt": "2025-03-11T15:29:34.227Z",
+      "completedAt": "2025-03-11T15:31:25.195Z",
+      "orderItems": [
+        {
+          "id": "historyItem280",
+          "orderId": "history28",
+          "menuItemId": "16",
+          "quantity": 3,
+          "price": 11.55
+        },
+        {
+          "id": "historyItem280",
+          "orderId": "history28",
+          "menuItemId": "10",
+          "quantity": 3,
+          "price": 10.45
+        },
+        {
+          "id": "historyItem280",
+          "orderId": "history28",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history29",
+      "orderId": "history29",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-11T01:57:19.726Z",
+      "servedAt": "2025-03-11T02:19:46.873Z",
+      "completedAt": "2025-03-11T03:04:04.302Z",
+      "orderItems": [
+        {
+          "id": "historyItem291",
+          "orderId": "history29",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        },
+        {
+          "id": "historyItem291",
+          "orderId": "history29",
+          "menuItemId": "12",
+          "quantity": 3,
+          "price": 2.3
+        },
+        {
+          "id": "historyItem291",
+          "orderId": "history29",
+          "menuItemId": "8",
+          "quantity": 3,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history30",
+      "orderId": "history30",
+      "tableId": "2",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-11T10:12:57.415Z",
+      "servedAt": "2025-03-11T10:38:39.849Z",
+      "completedAt": "2025-03-11T10:58:39.305Z",
+      "orderItems": [
+        {
+          "id": "historyItem302",
+          "orderId": "history30",
+          "menuItemId": "10",
+          "quantity": 1,
+          "price": 10.45
+        },
+        {
+          "id": "historyItem302",
+          "orderId": "history30",
+          "menuItemId": "2",
+          "quantity": 2,
+          "price": 12.49
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history31",
+      "orderId": "history31",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-12T04:45:47.978Z",
+      "servedAt": "2025-03-12T05:03:24.534Z",
+      "completedAt": "2025-03-12T05:16:01.916Z",
+      "orderItems": [
+        {
+          "id": "historyItem310",
+          "orderId": "history31",
+          "menuItemId": "7",
+          "quantity": 1,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem310",
+          "orderId": "history31",
+          "menuItemId": "12",
+          "quantity": 3,
+          "price": 2.3
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history32",
+      "orderId": "history32",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-12T02:08:41.889Z",
+      "servedAt": "2025-03-12T02:34:31.793Z",
+      "completedAt": "2025-03-12T03:04:17.457Z",
+      "orderItems": [
+        {
+          "id": "historyItem321",
+          "orderId": "history32",
+          "menuItemId": "10",
+          "quantity": 2,
+          "price": 10.45
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history33",
+      "orderId": "history33",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-14T13:11:37.190Z",
+      "servedAt": "2025-03-14T13:17:25.491Z",
+      "completedAt": "2025-03-14T13:24:03.192Z",
+      "orderItems": [
+        {
+          "id": "historyItem330",
+          "orderId": "history33",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        },
+        {
+          "id": "historyItem330",
+          "orderId": "history33",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        },
+        {
+          "id": "historyItem330",
+          "orderId": "history33",
+          "menuItemId": "8",
+          "quantity": 3,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history34",
+      "orderId": "history34",
+      "tableId": "2",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-14T10:35:55.937Z",
+      "servedAt": "2025-03-14T10:40:41.443Z",
+      "completedAt": "2025-03-14T10:57:08.712Z",
+      "orderItems": [
+        {
+          "id": "historyItem341",
+          "orderId": "history34",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        },
+        {
+          "id": "historyItem341",
+          "orderId": "history34",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        },
+        {
+          "id": "historyItem341",
+          "orderId": "history34",
+          "menuItemId": "17",
+          "quantity": 2,
+          "price": 12.59
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history35",
+      "orderId": "history35",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-14T02:27:33.545Z",
+      "servedAt": "2025-03-14T02:52:37.537Z",
+      "completedAt": "2025-03-14T02:54:14.998Z",
+      "orderItems": [
+        {
+          "id": "historyItem352",
+          "orderId": "history35",
+          "menuItemId": "4",
+          "quantity": 3,
+          "price": 10.16
+        },
+        {
+          "id": "historyItem352",
+          "orderId": "history35",
+          "menuItemId": "17",
+          "quantity": 2,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem352",
+          "orderId": "history35",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history36",
+      "orderId": "history36",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-14T14:20:05.508Z",
+      "servedAt": "2025-03-14T14:27:48.992Z",
+      "completedAt": "2025-03-14T14:29:16.435Z",
+      "orderItems": [
+        {
+          "id": "historyItem363",
+          "orderId": "history36",
+          "menuItemId": "13",
+          "quantity": 3,
+          "price": 6.65
+        },
+        {
+          "id": "historyItem363",
+          "orderId": "history36",
+          "menuItemId": "2",
+          "quantity": 1,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem363",
+          "orderId": "history36",
+          "menuItemId": "7",
+          "quantity": 3,
+          "price": 12.15
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history37",
+      "orderId": "history37",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-15T05:57:07.236Z",
+      "servedAt": "2025-03-15T06:04:48.807Z",
+      "completedAt": "2025-03-15T06:28:29.916Z",
+      "orderItems": [
+        {
+          "id": "historyItem370",
+          "orderId": "history37",
+          "menuItemId": "2",
+          "quantity": 1,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem370",
+          "orderId": "history37",
+          "menuItemId": "4",
+          "quantity": 1,
+          "price": 10.16
+        },
+        {
+          "id": "historyItem370",
+          "orderId": "history37",
+          "menuItemId": "8",
+          "quantity": 3,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history38",
+      "orderId": "history38",
+      "tableId": "1",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-16T14:44:12.728Z",
+      "servedAt": "2025-03-16T14:56:37.543Z",
+      "completedAt": "2025-03-16T15:48:46.137Z",
+      "orderItems": [
+        {
+          "id": "historyItem380",
+          "orderId": "history38",
+          "menuItemId": "16",
+          "quantity": 3,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history39",
+      "orderId": "history39",
+      "tableId": "1",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-16T15:31:45.285Z",
+      "servedAt": "2025-03-16T15:45:39.575Z",
+      "completedAt": "2025-03-16T16:06:31.762Z",
+      "orderItems": [
+        {
+          "id": "historyItem391",
+          "orderId": "history39",
+          "menuItemId": "3",
+          "quantity": 1,
+          "price": 13.79
+        },
+        {
+          "id": "historyItem391",
+          "orderId": "history39",
+          "menuItemId": "4",
+          "quantity": 3,
+          "price": 10.16
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history40",
+      "orderId": "history40",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-16T10:52:15.347Z",
+      "servedAt": "2025-03-16T11:01:59.931Z",
+      "completedAt": "2025-03-16T11:34:52.826Z",
+      "orderItems": [
+        {
+          "id": "historyItem402",
+          "orderId": "history40",
+          "menuItemId": "16",
+          "quantity": 1,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history41",
+      "orderId": "history41",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-17T16:21:34.076Z",
+      "servedAt": "2025-03-17T16:22:01.928Z",
+      "completedAt": "2025-03-17T17:03:34.485Z",
+      "orderItems": [
+        {
+          "id": "historyItem410",
+          "orderId": "history41",
+          "menuItemId": "16",
+          "quantity": 1,
+          "price": 11.55
+        },
+        {
+          "id": "historyItem410",
+          "orderId": "history41",
+          "menuItemId": "2",
+          "quantity": 1,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem410",
+          "orderId": "history41",
+          "menuItemId": "16",
+          "quantity": 1,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history42",
+      "orderId": "history42",
+      "tableId": "1",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-17T06:10:02.312Z",
+      "servedAt": "2025-03-17T06:22:42.716Z",
+      "completedAt": "2025-03-17T07:13:17.526Z",
+      "orderItems": [
+        {
+          "id": "historyItem421",
+          "orderId": "history42",
+          "menuItemId": "18",
+          "quantity": 2,
+          "price": 2.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history43",
+      "orderId": "history43",
+      "tableId": "5",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-17T02:37:38.459Z",
+      "servedAt": "2025-03-17T03:00:36.874Z",
+      "completedAt": "2025-03-17T03:44:22.224Z",
+      "orderItems": [
+        {
+          "id": "historyItem432",
+          "orderId": "history43",
+          "menuItemId": "16",
+          "quantity": 2,
+          "price": 11.55
+        },
+        {
+          "id": "historyItem432",
+          "orderId": "history43",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history44",
+      "orderId": "history44",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-17T06:17:45.986Z",
+      "servedAt": "2025-03-17T06:41:12.899Z",
+      "completedAt": "2025-03-17T06:56:31.274Z",
+      "orderItems": [
+        {
+          "id": "historyItem443",
+          "orderId": "history44",
+          "menuItemId": "18",
+          "quantity": 1,
+          "price": 2.65
+        },
+        {
+          "id": "historyItem443",
+          "orderId": "history44",
+          "menuItemId": "10",
+          "quantity": 3,
+          "price": 10.45
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history45",
+      "orderId": "history45",
+      "tableId": "2",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-17T08:22:40.028Z",
+      "servedAt": "2025-03-17T08:37:19.791Z",
+      "completedAt": "2025-03-17T09:08:09.203Z",
+      "orderItems": [
+        {
+          "id": "historyItem454",
+          "orderId": "history45",
+          "menuItemId": "6",
+          "quantity": 1,
+          "price": 8.85
+        },
+        {
+          "id": "historyItem454",
+          "orderId": "history45",
+          "menuItemId": "10",
+          "quantity": 1,
+          "price": 10.45
+        },
+        {
+          "id": "historyItem454",
+          "orderId": "history45",
+          "menuItemId": "15",
+          "quantity": 3,
+          "price": 9.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history46",
+      "orderId": "history46",
+      "tableId": "3",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-18T15:40:37.158Z",
+      "servedAt": "2025-03-18T15:59:56.743Z",
+      "completedAt": "2025-03-18T16:33:02.940Z",
+      "orderItems": [
+        {
+          "id": "historyItem460",
+          "orderId": "history46",
+          "menuItemId": "11",
+          "quantity": 1,
+          "price": 7.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history47",
+      "orderId": "history47",
+      "tableId": "2",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-18T16:16:12.394Z",
+      "servedAt": "2025-03-18T16:32:38.172Z",
+      "completedAt": "2025-03-18T16:51:15.965Z",
+      "orderItems": [
+        {
+          "id": "historyItem471",
+          "orderId": "history47",
+          "menuItemId": "3",
+          "quantity": 2,
+          "price": 13.79
+        },
+        {
+          "id": "historyItem471",
+          "orderId": "history47",
+          "menuItemId": "4",
+          "quantity": 1,
+          "price": 10.16
+        },
+        {
+          "id": "historyItem471",
+          "orderId": "history47",
+          "menuItemId": "2",
+          "quantity": 1,
+          "price": 12.49
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history48",
+      "orderId": "history48",
+      "tableId": "4",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-19T11:09:25.522Z",
+      "servedAt": "2025-03-19T11:14:12.474Z",
+      "completedAt": "2025-03-19T11:40:22.103Z",
+      "orderItems": [
+        {
+          "id": "historyItem480",
+          "orderId": "history48",
+          "menuItemId": "11",
+          "quantity": 1,
+          "price": 7.9
+        },
+        {
+          "id": "historyItem480",
+          "orderId": "history48",
+          "menuItemId": "9",
+          "quantity": 3,
+          "price": 12.69
+        },
+        {
+          "id": "historyItem480",
+          "orderId": "history48",
+          "menuItemId": "1",
+          "quantity": 2,
+          "price": 3.19
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history49",
+      "orderId": "history49",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-19T12:06:52.735Z",
+      "servedAt": "2025-03-19T12:18:52.679Z",
+      "completedAt": "2025-03-19T12:33:02.278Z",
+      "orderItems": [
+        {
+          "id": "historyItem491",
+          "orderId": "history49",
+          "menuItemId": "3",
+          "quantity": 2,
+          "price": 13.79
+        },
+        {
+          "id": "historyItem491",
+          "orderId": "history49",
+          "menuItemId": "8",
+          "quantity": 2,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history50",
+      "orderId": "history50",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-19T00:24:55.143Z",
+      "servedAt": "2025-03-19T00:35:14.090Z",
+      "completedAt": "2025-03-19T01:01:49.239Z",
+      "orderItems": [
+        {
+          "id": "historyItem502",
+          "orderId": "history50",
+          "menuItemId": "8",
+          "quantity": 2,
+          "price": 12.29
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history51",
+      "orderId": "history51",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-22T07:17:54.957Z",
+      "servedAt": "2025-03-22T07:41:25.766Z",
+      "completedAt": "2025-03-22T08:24:44.073Z",
+      "orderItems": [
+        {
+          "id": "historyItem510",
+          "orderId": "history51",
+          "menuItemId": "12",
+          "quantity": 1,
+          "price": 2.3
+        },
+        {
+          "id": "historyItem510",
+          "orderId": "history51",
+          "menuItemId": "15",
+          "quantity": 2,
+          "price": 9.9
+        },
+        {
+          "id": "historyItem510",
+          "orderId": "history51",
+          "menuItemId": "5",
+          "quantity": 2,
+          "price": 8.99
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history52",
+      "orderId": "history52",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-22T04:24:29.721Z",
+      "servedAt": "2025-03-22T04:54:00.657Z",
+      "completedAt": "2025-03-22T05:04:39.787Z",
+      "orderItems": [
+        {
+          "id": "historyItem521",
+          "orderId": "history52",
+          "menuItemId": "2",
+          "quantity": 3,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem521",
+          "orderId": "history52",
+          "menuItemId": "18",
+          "quantity": 2,
+          "price": 2.65
+        },
+        {
+          "id": "historyItem521",
+          "orderId": "history52",
+          "menuItemId": "13",
+          "quantity": 1,
+          "price": 6.65
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history53",
+      "orderId": "history53",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-22T03:33:37.961Z",
+      "servedAt": "2025-03-22T03:42:25.112Z",
+      "completedAt": "2025-03-22T04:26:35.405Z",
+      "orderItems": [
+        {
+          "id": "historyItem532",
+          "orderId": "history53",
+          "menuItemId": "2",
+          "quantity": 3,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem532",
+          "orderId": "history53",
+          "menuItemId": "17",
+          "quantity": 2,
+          "price": 12.59
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history54",
+      "orderId": "history54",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-22T03:25:17.214Z",
+      "servedAt": "2025-03-22T03:44:18.628Z",
+      "completedAt": "2025-03-22T04:16:43.025Z",
+      "orderItems": [
+        {
+          "id": "historyItem543",
+          "orderId": "history54",
+          "menuItemId": "2",
+          "quantity": 3,
+          "price": 12.49
+        },
+        {
+          "id": "historyItem543",
+          "orderId": "history54",
+          "menuItemId": "6",
+          "quantity": 1,
+          "price": 8.85
+        },
+        {
+          "id": "historyItem543",
+          "orderId": "history54",
+          "menuItemId": "16",
+          "quantity": 2,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history55",
+      "orderId": "history55",
+      "tableId": "4",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-22T16:37:15.581Z",
+      "servedAt": "2025-03-22T16:59:30.196Z",
+      "completedAt": "2025-03-22T17:38:23.469Z",
+      "orderItems": [
+        {
+          "id": "historyItem554",
+          "orderId": "history55",
+          "menuItemId": "18",
+          "quantity": 3,
+          "price": 2.65
+        },
+        {
+          "id": "historyItem554",
+          "orderId": "history55",
+          "menuItemId": "16",
+          "quantity": 2,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history56",
+      "orderId": "history56",
+      "tableId": "5",
+      "paymentMethod": "online payment",
+      "createdAt": "2025-03-23T13:20:49.843Z",
+      "servedAt": "2025-03-23T13:22:45.423Z",
+      "completedAt": "2025-03-23T14:18:02.652Z",
+      "orderItems": [
+        {
+          "id": "historyItem560",
+          "orderId": "history56",
+          "menuItemId": "8",
+          "quantity": 1,
+          "price": 12.29
+        },
+        {
+          "id": "historyItem560",
+          "orderId": "history56",
+          "menuItemId": "9",
+          "quantity": 1,
+          "price": 12.69
+        },
+        {
+          "id": "historyItem560",
+          "orderId": "history56",
+          "menuItemId": "11",
+          "quantity": 3,
+          "price": 7.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history57",
+      "orderId": "history57",
+      "tableId": "4",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-23T08:51:10.382Z",
+      "servedAt": "2025-03-23T09:09:40.319Z",
+      "completedAt": "2025-03-23T09:48:01.790Z",
+      "orderItems": [
+        {
+          "id": "historyItem571",
+          "orderId": "history57",
+          "menuItemId": "17",
+          "quantity": 3,
+          "price": 12.59
+        },
+        {
+          "id": "historyItem571",
+          "orderId": "history57",
+          "menuItemId": "15",
+          "quantity": 1,
+          "price": 9.9
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history58",
+      "orderId": "history58",
+      "tableId": "5",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-24T00:35:34.894Z",
+      "servedAt": "2025-03-24T00:55:15.189Z",
+      "completedAt": "2025-03-24T01:04:28.307Z",
+      "orderItems": [
+        {
+          "id": "historyItem580",
+          "orderId": "history58",
+          "menuItemId": "11",
+          "quantity": 1,
+          "price": 7.9
+        },
+        {
+          "id": "historyItem580",
+          "orderId": "history58",
+          "menuItemId": "7",
+          "quantity": 2,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem580",
+          "orderId": "history58",
+          "menuItemId": "17",
+          "quantity": 2,
+          "price": 12.59
+        }
+      ],
+      "cashierId": "user2"
+    },
+    {
+      "id": "history59",
+      "orderId": "history59",
+      "tableId": "3",
+      "paymentMethod": "cash",
+      "createdAt": "2025-03-26T00:32:03.087Z",
+      "servedAt": "2025-03-26T00:54:43.679Z",
+      "completedAt": "2025-03-26T01:15:04.031Z",
+      "orderItems": [
+        {
+          "id": "historyItem590",
+          "orderId": "history59",
+          "menuItemId": "11",
+          "quantity": 3,
+          "price": 7.9
+        },
+        {
+          "id": "historyItem590",
+          "orderId": "history59",
+          "menuItemId": "7",
+          "quantity": 2,
+          "price": 12.15
+        },
+        {
+          "id": "historyItem590",
+          "orderId": "history59",
+          "menuItemId": "16",
+          "quantity": 3,
+          "price": 11.55
+        }
+      ],
+      "cashierId": "user2"
+    }
+  ],
+  "feedback": [
+    {
+      "id": "e5dd5e74db89885bfb85f80a",
+      "rating": 4,
+      "comment": "Acidus demulceo virga chirographum sumptus adulatio.",
+      "timestamp": "2025-03-12T23:49:40.259Z"
+    },
+    {
+      "id": "d39defd8f923ceeca7eedd2a",
+      "rating": 5,
+      "comment": "Tricesimus ater cuppedia capto.",
+      "timestamp": "2025-03-12T18:35:44.959Z"
+    },
+    {
+      "id": "81dafa7dd70ee8ce21a150d8",
+      "rating": 3,
+      "comment": "Cohors audax rerum vulticulus.",
+      "timestamp": "2025-03-12T14:46:36.444Z"
+    },
+    {
+      "id": "0e3db4f2b507f27ee3ef894a",
+      "rating": 5,
+      "comment": "Autem vespillo adnuo conqueror sollers vado.",
+      "timestamp": "2025-03-12T16:30:43.662Z"
+    },
+    {
+      "id": "ab4640c454ae1d1bf8f309f2",
+      "rating": 2,
+      "comment": "Desidero nesciunt terreo tutis paens triumphus administratio.",
+      "timestamp": "2025-03-13T02:22:15.890Z"
+    },
+    {
+      "id": "79ebda6ee8c97a1fac4169df",
+      "rating": 5,
+      "comment": "Cogo averto uberrime arcesso voluptatem.",
+      "timestamp": "2025-03-13T03:35:21.617Z"
+    },
+    {
+      "id": "c53c23a1f0eccffea19f02e4",
+      "rating": 4,
+      "comment": "Abduco utilis illo tabernus alveus ubi timor.",
+      "timestamp": "2025-03-13T13:06:14.262Z"
+    },
+    {
+      "id": "cff1148fdaf2aacfde49817a",
+      "rating": 1,
+      "comment": "",
+      "timestamp": "2025-03-13T10:39:11.872Z"
+    },
+    {
+      "id": "8f7bbeb8b87429ab8f7cae0f",
+      "rating": 3,
+      "comment": "Ea cunabula artificiose paens.",
+      "timestamp": "2025-03-12T19:25:36.762Z"
+    },
+    {
+      "id": "a8be1df165f2c8a2bde552b9",
+      "rating": 4,
+      "comment": "Confero compono sopor derideo ultio tardus sordeo textor conatus.",
+      "timestamp": "2025-03-12T20:56:07.560Z"
+    },
+    {
+      "id": "af2b3372d9ef0c8dd66edf8a",
+      "rating": 2,
+      "comment": "Tergeo deprecator ambitus textus testimonium vallum.",
+      "timestamp": "2025-03-12T15:00:39.505Z"
+    },
+    {
+      "id": "7e94d4c01ecc83faa1d14d87",
+      "rating": 2,
+      "comment": "",
+      "timestamp": "2025-03-12T16:01:06.972Z"
+    },
+    {
+      "id": "bfb87cf576fffaf3f2bffe1a",
+      "rating": 5,
+      "comment": "Decor demoror iste error casso sto cicuta adopto.",
+      "timestamp": "2025-03-12T16:55:35.420Z"
+    },
+    {
+      "id": "7a955a0b27aed60c9dd6bdb0",
+      "rating": 4,
+      "comment": "Cui benigne odit viridis adicio color angustus varietas stillicidium tersus.",
+      "timestamp": "2025-03-12T20:35:53.615Z"
+    },
+    {
+      "id": "c7d2df05a10e67a33682f8dd",
+      "rating": 4,
+      "comment": "Umquam cena crebro cuppedia succurro arbitro.",
+      "timestamp": "2025-03-13T01:33:56.047Z"
+    },
+    {
+      "id": "ee326eef0db6ff92f1a2b392",
+      "rating": 2,
+      "comment": "",
+      "timestamp": "2025-03-13T10:37:31.487Z"
+    },
+    {
+      "id": "e5f7ce35056389d846acf7a9",
+      "rating": 4,
+      "comment": "Sordeo arca vulgo eaque adhuc exercitationem.",
+      "timestamp": "2025-03-12T17:00:28.838Z"
+    },
+    {
+      "id": "33d5be03ffe1cb8a8fade23b",
+      "rating": 2,
+      "comment": "Acies viridis thymbra distinctio degenero quas vinitor.",
+      "timestamp": "2025-03-13T12:46:13.710Z"
+    },
+    {
+      "id": "23016e2ff9496bca2acf8df4",
+      "rating": 5,
+      "comment": "Acervus vergo thermae temperantia averto aveho venia.",
+      "timestamp": "2025-03-13T12:43:02.142Z"
+    },
+    {
+      "id": "d66dcdb6ac7a5a1a9f32371c",
+      "rating": 1,
+      "comment": "Angelus temeritas denique.",
+      "timestamp": "2025-03-12T20:02:58.201Z"
+    },
+    {
+      "id": "3dce2ae4af01cda78c3c23b1",
+      "rating": 2,
+      "comment": "Tenax socius vis damno sordeo caelestis peior studio.",
+      "timestamp": "2025-03-13T05:35:14.784Z"
+    },
+    {
+      "id": "aab86f8e1dfb7ea36a61b2db",
+      "rating": 2,
+      "comment": "Corporis tepidus auditor suspendo.",
+      "timestamp": "2025-03-13T06:28:29.991Z"
+    },
+    {
+      "id": "bb7556dfa1ee76a0d76d13ef",
+      "rating": 4,
+      "comment": "Harum laborum vigilo trans creber tamquam alter harum.",
+      "timestamp": "2025-03-12T23:13:39.421Z"
+    },
+    {
+      "id": "79bea4f8c2b1c49b23dbd8f7",
+      "rating": 5,
+      "comment": "Socius aranea annus stips iure abundans aeger cresco benevolentia.",
+      "timestamp": "2025-03-13T04:50:37.085Z"
+    },
+    {
+      "id": "0a2aa8eebdbdc08a86eb5acc",
+      "rating": 3,
+      "comment": "Consuasor auxilium urbanus tego ars abscido tumultus adulescens aliquam.",
+      "timestamp": "2025-03-13T10:19:15.384Z"
+    }
+  ],
+  "statistics": [
+    {
+      "id": "stats2025-02-26",
+      "date": "2025-02-26",
+      "totalOrders": 4,
+      "totalRevenue": 137.32,
+      "paymentMethodSummary": {
+        "online payment": 3,
+        "cash": 1
+      },
+      "ordersByHour": {
+        "02": 1,
+        "00": 1,
+        "06": 1,
+        "01": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Small Granite Gloves": 6,
+        "Ergonomic Bronze Shoes": 3,
+        "Handmade Fresh Pants": 3,
+        "Electronic Rubber Towels": 2,
+        "Unbranded Concrete Shirt": 1
+      }
+    },
+    {
+      "id": "stats2025-02-27",
+      "date": "2025-02-27",
+      "totalOrders": 1,
+      "totalRevenue": 48.44,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "03": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Ergonomic Bronze Shoes": 2,
+        "Rustic Frozen Car": 1,
+        "Handmade Plastic Bacon": 1
+      }
+    },
+    {
+      "id": "stats2025-02-28",
+      "date": "2025-02-28",
+      "totalOrders": 4,
+      "totalRevenue": 162.73,
+      "paymentMethodSummary": {
+        "online payment": 2,
+        "cash": 2
+      },
+      "ordersByHour": {
+        "12": 1,
+        "13": 1,
+        "15": 1,
+        "05": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Electronic Rubber Towels": 5,
+        "Sleek Steel Car": 5,
+        "Refined Cotton Pizza": 2,
+        "Small Granite Gloves": 2,
+        "Intelligent Granite Towels": 2
+      }
+    },
+    {
+      "id": "stats2025-03-01",
+      "date": "2025-03-01",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-02",
+      "date": "2025-03-02",
+      "totalOrders": 3,
+      "totalRevenue": 120.34,
+      "paymentMethodSummary": {
+        "cash": 2,
+        "online payment": 1
+      },
+      "ordersByHour": {
+        "13": 1,
+        "00": 1,
+        "05": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Intelligent Granite Towels": 3,
+        "Unbranded Concrete Shirt": 3,
+        "Ergonomic Bronze Shoes": 3,
+        "Tasty Metal Chair": 1,
+        "Small Granite Mouse": 1
+      }
+    },
+    {
+      "id": "stats2025-03-03",
+      "date": "2025-03-03",
+      "totalOrders": 3,
+      "totalRevenue": 60.79,
+      "paymentMethodSummary": {
+        "cash": 1,
+        "online payment": 2
+      },
+      "ordersByHour": {
+        "13": 1,
+        "05": 1,
+        "06": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Soft Chips": 3,
+        "Handmade Fresh Pants": 3,
+        "Tasty Plastic Computer": 3,
+        "Small Granite Mouse": 2,
+        "Intelligent Granite Towels": 1
+      }
+    },
+    {
+      "id": "stats2025-03-04",
+      "date": "2025-03-04",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-05",
+      "date": "2025-03-05",
+      "totalOrders": 3,
+      "totalRevenue": 134.76999999999998,
+      "paymentMethodSummary": {
+        "cash": 2,
+        "online payment": 1
+      },
+      "ordersByHour": {
+        "00": 2,
+        "05": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Ergonomic Bronze Shoes": 3,
+        "Sleek Concrete Shoes": 3,
+        "Handmade Soft Chips": 2,
+        "Rustic Frozen Car": 2,
+        "Intelligent Concrete Table": 1
+      }
+    },
+    {
+      "id": "stats2025-03-06",
+      "date": "2025-03-06",
+      "totalOrders": 3,
+      "totalRevenue": 116.51999999999998,
+      "paymentMethodSummary": {
+        "cash": 3
+      },
+      "ordersByHour": {
+        "14": 1,
+        "16": 1,
+        "01": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Small Granite Gloves": 6,
+        "Small Granite Mouse": 3,
+        "Handmade Rubber Computer": 2,
+        "Intelligent Granite Towels": 2,
+        "Rustic Frozen Car": 1
+      }
+    },
+    {
+      "id": "stats2025-03-07",
+      "date": "2025-03-07",
+      "totalOrders": 1,
+      "totalRevenue": 63.17000000000001,
+      "paymentMethodSummary": {
+        "online payment": 1
+      },
+      "ordersByHour": {
+        "09": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Unbranded Concrete Shirt": 3,
+        "Intelligent Concrete Table": 3,
+        "Tasty Plastic Computer": 1
+      }
+    },
+    {
+      "id": "stats2025-03-08",
+      "date": "2025-03-08",
+      "totalOrders": 1,
+      "totalRevenue": 36.54,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "06": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Small Granite Mouse": 3,
+        "Electronic Rubber Towels": 3
+      }
+    },
+    {
+      "id": "stats2025-03-09",
+      "date": "2025-03-09",
+      "totalOrders": 3,
+      "totalRevenue": 19.48,
+      "paymentMethodSummary": {
+        "online payment": 2,
+        "cash": 1
+      },
+      "ordersByHour": {
+        "16": 2,
+        "05": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Small Granite Mouse": 2,
+        "Sleek Concrete Shoes": 1,
+        "Handmade Fresh Pants": 1
+      }
+    },
+    {
+      "id": "stats2025-03-10",
+      "date": "2025-03-10",
+      "totalOrders": 1,
+      "totalRevenue": 52.959999999999994,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "02": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Sleek Steel Car": 2,
+        "Intelligent Granite Towels": 2
+      }
+    },
+    {
+      "id": "stats2025-03-11",
+      "date": "2025-03-11",
+      "totalOrders": 3,
+      "totalRevenue": 165.36999999999998,
+      "paymentMethodSummary": {
+        "cash": 1,
+        "online payment": 2
+      },
+      "ordersByHour": {
+        "10": 1,
+        "15": 1,
+        "01": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Sleek Concrete Shoes": 4,
+        "Handmade Plastic Bacon": 3,
+        "Refined Cotton Pizza": 3,
+        "Handmade Rubber Computer": 3,
+        "Small Granite Mouse": 2
+      }
+    },
+    {
+      "id": "stats2025-03-12",
+      "date": "2025-03-12",
+      "totalOrders": 2,
+      "totalRevenue": 39.95,
+      "paymentMethodSummary": {
+        "cash": 2
+      },
+      "ordersByHour": {
+        "04": 1,
+        "02": 1
+      },
+      "averageRating": 3.54,
+      "totalComments": 12,
+      "bestSellingItems": {
+        "Refined Cotton Pizza": 3,
+        "Sleek Concrete Shoes": 2,
+        "Ergonomic Bronze Shoes": 1
+      }
+    },
+    {
+      "id": "stats2025-03-13",
+      "date": "2025-03-13",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 3.08,
+      "totalComments": 10,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-14",
+      "date": "2025-03-14",
+      "totalOrders": 4,
+      "totalRevenue": 253.3,
+      "paymentMethodSummary": {
+        "cash": 3,
+        "online payment": 1
+      },
+      "ordersByHour": {
+        "10": 1,
+        "13": 1,
+        "14": 1,
+        "02": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Electronic Rubber Towels": 6,
+        "Small Granite Mouse": 4,
+        "Rustic Frozen Car": 4,
+        "Handmade Rubber Computer": 3,
+        "Unbranded Concrete Shirt": 3
+      }
+    },
+    {
+      "id": "stats2025-03-15",
+      "date": "2025-03-15",
+      "totalOrders": 1,
+      "totalRevenue": 59.519999999999996,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "05": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Rubber Computer": 3,
+        "Modern Fresh Bacon": 1,
+        "Unbranded Concrete Shirt": 1
+      }
+    },
+    {
+      "id": "stats2025-03-16",
+      "date": "2025-03-16",
+      "totalOrders": 3,
+      "totalRevenue": 90.47,
+      "paymentMethodSummary": {
+        "cash": 3
+      },
+      "ordersByHour": {
+        "10": 1,
+        "14": 1,
+        "15": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Plastic Bacon": 4,
+        "Unbranded Concrete Shirt": 3,
+        "Intelligent Granite Towels": 1
+      }
+    },
+    {
+      "id": "stats2025-03-17",
+      "date": "2025-03-17",
+      "totalOrders": 5,
+      "totalRevenue": 153.37,
+      "paymentMethodSummary": {
+        "cash": 3,
+        "online payment": 2
+      },
+      "ordersByHour": {
+        "16": 1,
+        "06": 2,
+        "02": 1,
+        "08": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Plastic Bacon": 4,
+        "Sleek Concrete Shoes": 4,
+        "Handmade Fresh Pants": 3,
+        "Intelligent Concrete Table": 3,
+        "Small Granite Mouse": 2
+      }
+    },
+    {
+      "id": "stats2025-03-18",
+      "date": "2025-03-18",
+      "totalOrders": 2,
+      "totalRevenue": 58.13,
+      "paymentMethodSummary": {
+        "online payment": 2
+      },
+      "ordersByHour": {
+        "15": 1,
+        "16": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Intelligent Granite Towels": 2,
+        "Handmade Soft Chips": 1,
+        "Unbranded Concrete Shirt": 1,
+        "Modern Fresh Bacon": 1
+      }
+    },
+    {
+      "id": "stats2025-03-19",
+      "date": "2025-03-19",
+      "totalOrders": 3,
+      "totalRevenue": 129.09,
+      "paymentMethodSummary": {
+        "cash": 1,
+        "online payment": 2
+      },
+      "ordersByHour": {
+        "11": 1,
+        "12": 1,
+        "00": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Rubber Computer": 4,
+        "Sleek Steel Car": 3,
+        "Small Granite Mouse": 2,
+        "Intelligent Granite Towels": 2,
+        "Handmade Soft Chips": 1
+      }
+    },
+    {
+      "id": "stats2025-03-20",
+      "date": "2025-03-20",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-21",
+      "date": "2025-03-21",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-22",
+      "date": "2025-03-22",
+      "totalOrders": 5,
+      "totalRevenue": 252.61999999999998,
+      "paymentMethodSummary": {
+        "online payment": 3,
+        "cash": 2
+      },
+      "ordersByHour": {
+        "16": 1,
+        "07": 1,
+        "04": 1,
+        "03": 2
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Modern Fresh Bacon": 9,
+        "Handmade Fresh Pants": 5,
+        "Handmade Plastic Bacon": 4,
+        "Intelligent Concrete Table": 2,
+        "Electronic Rubber Towels": 2
+      }
+    },
+    {
+      "id": "stats2025-03-23",
+      "date": "2025-03-23",
+      "totalOrders": 2,
+      "totalRevenue": 96.35,
+      "paymentMethodSummary": {
+        "online payment": 1,
+        "cash": 1
+      },
+      "ordersByHour": {
+        "13": 1,
+        "08": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Soft Chips": 3,
+        "Rustic Frozen Car": 3,
+        "Handmade Rubber Computer": 1,
+        "Sleek Steel Car": 1,
+        "Intelligent Concrete Table": 1
+      }
+    },
+    {
+      "id": "stats2025-03-24",
+      "date": "2025-03-24",
+      "totalOrders": 1,
+      "totalRevenue": 57.38,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "00": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Ergonomic Bronze Shoes": 2,
+        "Rustic Frozen Car": 2,
+        "Handmade Soft Chips": 1
+      }
+    },
+    {
+      "id": "stats2025-03-25",
+      "date": "2025-03-25",
+      "totalOrders": 0,
+      "totalRevenue": 0,
+      "paymentMethodSummary": {},
+      "ordersByHour": {},
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {}
+    },
+    {
+      "id": "stats2025-03-26",
+      "date": "2025-03-26",
+      "totalOrders": 1,
+      "totalRevenue": 82.65,
+      "paymentMethodSummary": {
+        "cash": 1
+      },
+      "ordersByHour": {
+        "00": 1
+      },
+      "averageRating": 0,
+      "totalComments": 0,
+      "bestSellingItems": {
+        "Handmade Soft Chips": 3,
+        "Handmade Plastic Bacon": 3,
+        "Ergonomic Bronze Shoes": 2
+      }
+    }
+  ],
+  "aggregatedStatistics": []
+}
