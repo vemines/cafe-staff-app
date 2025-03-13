@@ -23,6 +23,7 @@ class ApiEndpoints {
   static String tables = '/tables';
   static String singleTable(String id) => '$tables/$id';
   static String tableStatuses = '/table-statuses';
+  static String areasWithTables = '/areas-with-tables';
 
   // Orders
   static String orders = '/orders';
@@ -34,9 +35,11 @@ class ApiEndpoints {
 
   // Feedback
   static String feedback = '/feedback';
-  static String singleFeedback(String id) => '$feedback/$id';
+  // No singleFeedback endpoint
 
   // Statistics
   static String statistics = '/statistics';
-  static String singleStatistic(String id) => '$statistics/$id';
+  static String todayStatistics = '$statistics/today';
+  static String thisWeekStatistics = '$statistics/this-week';
+  static String statisticsYears = '$statistics/statisticsYears';
 }

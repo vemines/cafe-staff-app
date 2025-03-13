@@ -11,14 +11,15 @@ class Paths {
 }
 
 final routes = GoRouter(
-  initialLocation: sl<AuthCubit>().state is AuthAuthenticated ? Paths.home : Paths.login,
-  redirect: (context, state) {
+  initialLocation: Paths.login,
+  redirect: (context, state) async {
     final userCubit = sl<AuthCubit>();
-    // if (userCubit.state is AuthInitial) userCubit.getLoggedInUser();
-    final isUserenticated = userCubit.state is AuthAuthenticated;
+    await userCubit.getLoggedInUser();
+
+    final isAuthenticated = userCubit.state is AuthAuthenticated;
 
     final isLoginPage = state.uri.path == Paths.login;
-    return isUserenticated && !isLoginPage ? null : Paths.login;
+    return isAuthenticated && !isLoginPage ? null : Paths.login;
   },
   routes: [
     // GoRoute(path: Paths.login, builder: (context, state) => const LoginPage()),

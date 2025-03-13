@@ -26,10 +26,6 @@ class AppFailure extends Failure {
   List<Object?> get props => [message];
 }
 
-class NoCacheFailure extends Failure {
-  const NoCacheFailure({super.message = kNoCacheFailureMessage, super.code, super.stackTrace});
-}
-
 class TimeoutFailure extends Failure {
   const TimeoutFailure({super.message = kTimeoutFailure, super.code, super.stackTrace});
 }

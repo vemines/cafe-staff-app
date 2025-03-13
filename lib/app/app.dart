@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../configs/configs.dart';
+import '../features/blocs/auth/auth_cubit.dart';
+import '../injection_container.dart';
 import 'cubits/cubits.dart';
 import 'locale.dart';
 import 'routes.dart';
@@ -17,7 +19,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => LocaleCubit()),
         // Provide feature-specific BLoCs using GetIt
-        // BlocProvider(create: (context) => sl<AuthCubit>()),
+        BlocProvider(create: (context) => sl<AuthCubit>()..getLoggedInUser()),
       ],
       child: const _App(),
     );

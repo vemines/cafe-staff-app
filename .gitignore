@@ -46,6 +46,4 @@ app.*.map.json
 e.py
 export.txt
 README.md
-/lib/features/blocs
-/lib/features/datasources
 /lib/features/pages
