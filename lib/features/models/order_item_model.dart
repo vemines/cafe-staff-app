@@ -1,3 +1,6 @@
+import '../entities/menu_item_entity.dart';
+import 'menu_item_model.dart';
+
 import '../../core/constants/api_map.dart';
 import '../../core/utils/parse_utils.dart';
 import '../entities/order_item_entity.dart';
@@ -6,7 +9,7 @@ class OrderItemModel extends OrderItemEntity {
   const OrderItemModel({
     required super.id,
     required super.orderId,
-    required super.menuItemId,
+    required super.menuItem,
     required super.quantity,
     required super.price,
   });
@@ -15,7 +18,7 @@ class OrderItemModel extends OrderItemEntity {
     return OrderItemModel(
       id: json[OrderItemApiMap.id] as String,
       orderId: json[OrderItemApiMap.orderId] as String,
-      menuItemId: json[OrderItemApiMap.menuItemId] as String,
+      menuItem: MenuItemModel.fromJson(json[OrderItemApiMap.menuItem]),
       quantity: intParse(json[OrderItemApiMap.quantity]),
       price: doubleParse(json[OrderItemApiMap.price]),
     );
@@ -24,7 +27,7 @@ class OrderItemModel extends OrderItemEntity {
     return OrderItemModel(
       id: entity.id,
       orderId: entity.orderId,
-      menuItemId: entity.menuItemId,
+      menuItem: entity.menuItem,
       quantity: entity.quantity,
       price: entity.price,
     );
@@ -34,14 +37,14 @@ class OrderItemModel extends OrderItemEntity {
   OrderItemModel copyWith({
     String? id,
     String? orderId,
-    String? menuItemId,
+    MenuItemEntity? menuItem,
     int? quantity,
     double? price,
   }) {
     return OrderItemModel(
       id: id ?? this.id,
       orderId: orderId ?? this.orderId,
-      menuItemId: menuItemId ?? this.menuItemId,
+      menuItem: menuItem ?? this.menuItem,
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
     );
@@ -51,7 +54,7 @@ class OrderItemModel extends OrderItemEntity {
     return {
       OrderItemApiMap.id: id,
       OrderItemApiMap.orderId: orderId,
-      OrderItemApiMap.menuItemId: menuItemId,
+      OrderItemApiMap.menuItem: menuItem,
       OrderItemApiMap.quantity: quantity,
       OrderItemApiMap.price: price,
     };

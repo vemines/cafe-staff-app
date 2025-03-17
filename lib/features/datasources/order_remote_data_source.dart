@@ -21,6 +21,18 @@ abstract class OrderRemoteDataSource {
   Future<OrderModel> getOrderById({required String orderId});
 
   Future<OrderModel> updateOrder({required String id, String? orderStatus, String? paymentMethod});
+
+  Future<void> mergeOrders({
+    required String sourceTableId,
+    required String targetTableId,
+    required List<String> splitItemIds,
+  });
+  Future<void> splitOrder({
+    required String sourceTableId,
+    required String targetTableId,
+    required List<String> splitItemIds,
+  });
+  Future<void> approveMerge({required String mergeRequestId});
 }
 
 class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
@@ -42,7 +54,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
               orderItems
                   .map(
                     (item) => {
-                      'menuItemId': item.menuItemId,
+                      'menuItemId': item.menuItem,
                       'quantity': item.quantity,
                       'price': item.price,
                     },
@@ -123,6 +135,69 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
         s,
         'updateOrder({required String id, String? orderStatus, String? paymentMethod})',
       );
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<void> mergeOrders({
+    required String sourceTableId,
+    required String targetTableId,
+    required List<String> splitItemIds,
+  }) async {
+    try {
+      await dio.post(
+        ApiEndpoints.mergeOrder,
+        data: {
+          'sourceTableId': sourceTableId,
+          'targetTableId': targetTableId,
+          'splitItemIds': splitItemIds,
+        },
+      );
+    } on DioException catch (e, s) {
+      handleDioException(
+        e,
+        s,
+        'mergeOrders({required String sourceTableId, required String targetTableId, required List<String> splitItemIds})',
+      );
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<void> splitOrder({
+    required String sourceTableId,
+    required String targetTableId,
+    required List<String> splitItemIds,
+  }) async {
+    try {
+      await dio.post(
+        ApiEndpoints.splitOrder,
+        data: {
+          'sourceTableId': sourceTableId,
+          'targetTableId': targetTableId,
+          'splitItemIds': splitItemIds,
+        },
+      );
+    } on DioException catch (e, s) {
+      handleDioException(
+        e,
+        s,
+        'splitOrder({required String sourceTableId, required String targetTableId, required List<String> splitItemIds})',
+      );
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<void> approveMerge({required String mergeRequestId}) async {
+    try {
+      await dio.post(ApiEndpoints.approveMergeOrder, data: {'mergeRequestId': mergeRequestId});
+    } on DioException catch (e, s) {
+      handleDioException(e, s, "approveMerge({required String mergeRequestId})");
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

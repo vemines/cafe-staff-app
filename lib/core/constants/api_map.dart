@@ -43,24 +43,25 @@ class TableApiMap {
   static const String tableName = 'tableName';
   static const String status = 'status';
   static const String areaId = 'areaId';
+  static const String mergedTable = 'mergedTable';
 }
 
 class OrderApiMap {
   static const String id = 'id';
   static const String tableId = 'tableId';
-  static const String orderStatus = 'orderStatus';
   static const String timestamp = 'timestamp';
   static const String orderItems = 'orderItems';
   static const String createdBy = 'createdBy';
   static const String createdAt = 'createdAt';
   static const String servedBy = 'servedBy';
   static const String servedAt = 'servedAt';
+  static const String totalPrice = 'totalPrice';
 }
 
 class OrderItemApiMap {
   static const String id = 'id';
   static const String orderId = 'orderId';
-  static const String menuItemId = 'menuItemId';
+  static const String menuItem = 'menuItem';
   static const String quantity = 'quantity';
   static const String price = 'price';
 }
@@ -68,7 +69,7 @@ class OrderItemApiMap {
 class OrderHistoryApiMap {
   static const String id = 'id';
   static const String orderId = 'orderId';
-  static const String tableId = 'tableId';
+  static const String table = 'table';
   static const String paymentMethod = 'paymentMethod';
   static const String servedAt = 'servedAt';
   static const String completedAt = 'completedAt';
@@ -92,7 +93,7 @@ class StatisticsApiMap {
   static const String paymentMethodSummary = 'paymentMethodSummary';
   static const String ordersByHour = 'ordersByHour';
   static const String averageRating = 'averageRating';
-  static const String totalComments = 'totalComments';
+  static const String totalFeedbacks = 'totalFeedbacks';
   static const String bestSellingItems = 'bestSellingItems';
 }
 

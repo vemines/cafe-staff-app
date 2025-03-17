@@ -2,13 +2,13 @@ import 'package:equatable/equatable.dart';
 
 class StatisticsEntity extends Equatable {
   final String id;
-  final String date;
+  final DateTime date;
   final int totalOrders;
   final double totalRevenue;
   final Map<String, int> paymentMethodSummary;
-  final Map<String, int> ordersByHour;
+  final Map<int, int> ordersByHour;
   final double averageRating;
-  final int totalComments;
+  final int totalFeedbacks;
   final Map<String, int> bestSellingItems;
 
   const StatisticsEntity({
@@ -19,7 +19,7 @@ class StatisticsEntity extends Equatable {
     required this.paymentMethodSummary,
     required this.ordersByHour,
     required this.averageRating,
-    required this.totalComments,
+    required this.totalFeedbacks,
     required this.bestSellingItems,
   });
 
@@ -32,19 +32,19 @@ class StatisticsEntity extends Equatable {
     paymentMethodSummary,
     ordersByHour,
     averageRating,
-    totalComments,
+    totalFeedbacks,
     bestSellingItems,
   ];
 
   StatisticsEntity copyWith({
     String? id,
-    String? date,
+    DateTime? date,
     int? totalOrders,
     double? totalRevenue,
     Map<String, int>? paymentMethodSummary,
-    Map<String, int>? ordersByHour,
+    Map<int, int>? ordersByHour,
     double? averageRating,
-    int? totalComments,
+    int? totalFeedbacks,
     Map<String, int>? bestSellingItems,
   }) {
     return StatisticsEntity(
@@ -55,7 +55,7 @@ class StatisticsEntity extends Equatable {
       paymentMethodSummary: paymentMethodSummary ?? this.paymentMethodSummary,
       ordersByHour: ordersByHour ?? this.ordersByHour,
       averageRating: averageRating ?? this.averageRating,
-      totalComments: totalComments ?? this.totalComments,
+      totalFeedbacks: totalFeedbacks ?? this.totalFeedbacks,
       bestSellingItems: bestSellingItems ?? this.bestSellingItems,
     );
   }

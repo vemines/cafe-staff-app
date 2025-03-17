@@ -1,11 +1,14 @@
+// lib/injection_container.dart
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'app/flavor.dart';
 import 'core/network/network_info.dart';
+import 'core/services/socket_service.dart';
 import 'features/blocs/auth/auth_cubit.dart';
 import 'features/blocs/feedback/feedback_cubit.dart';
 import 'features/blocs/menu/category_cubit.dart';
@@ -150,7 +153,9 @@ Future<void> init() async {
       deleteTableUseCase: sl(),
     ),
   );
-  sl.registerFactory(() => AreaWithTablesCubit(getAreasWithTablesUseCase: sl()));
+  sl.registerFactory(
+    () => AreaWithTablesCubit(getAreasWithTablesUseCase: sl(), socketService: sl()),
+  ); // Inject TableRemoteDataSource
   sl.registerFactory(
     () => UserCubit(
       getAllUsersUseCase: sl(),
@@ -249,6 +254,44 @@ Future<void> init() async {
 
   //! Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  sl.registerSingletonAsync<SocketService>(
+    () async {
+      final authCubit = sl<AuthCubit>();
+      String? currentUserId = '';
+
+      // Get initial user ID, if available
+      final authState = authCubit.state;
+      if (authState is AuthAuthenticated) {
+        currentUserId = authState.user.id;
+      }
+
+      final socketService = SocketService(userId: currentUserId);
+
+      // Listen to AuthCubit's state changes using a local variable.
+      authCubit.stream.listen((state) {
+        if (state is AuthAuthenticated) {
+          if (socketService.userId != state.user.id) {
+            // User changed, dispose and create new one
+            socketService.dispose();
+            // Create SocketService instance
+            sl.registerSingleton<SocketService>(SocketService(userId: state.user.id));
+          }
+        } else if (state is AuthUnauthenticated) {
+          socketService.dispose();
+          // Unregister, next time will register again
+          if (sl.isRegistered<SocketService>()) {
+            sl.unregister<SocketService>();
+          }
+        }
+      });
+
+      // Dispose of the socket and cancel the subscription when unregistering.
+      return socketService;
+    },
+    dispose: (service) {
+      service.dispose();
+    },
+  );
 
   //! External
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -256,9 +299,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => InternetConnection());
   sl.registerLazySingleton(() => const FlutterSecureStorage());
 
+  final flavor = FlavorService.instance.config;
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio();
-    final flavor = FlavorService.instance.config;
 
     final authState = sl<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
@@ -270,5 +313,18 @@ Future<void> init() async {
     dio.options.receiveTimeout = Duration(seconds: flavor.requestTimeout);
 
     return dio;
+  });
+
+  // Initialize and register Socket.IO *before* the Cubit
+  sl.registerLazySingleton<io.Socket>(() {
+    final socket = io.io(
+      flavor.baseUrl, // Use baseUrl from Flavor
+      io.OptionBuilder()
+          .setTransports(['websocket'])
+          .setExtraHeaders(sl<Dio>().options.headers) // Pass headers from Dio (including userId)
+          .disableAutoConnect() // Important: Don't auto-connect here
+          .build(),
+    );
+    return socket;
   });
 }

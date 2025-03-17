@@ -2,13 +2,15 @@ import '../../core/constants/api_map.dart';
 import '../../core/utils/parse_utils.dart';
 import '../entities/order_history_entity.dart';
 import '../entities/order_item_entity.dart';
+import '../entities/table_entity.dart';
 import 'order_item_model.dart';
+import 'table_model.dart';
 
 class OrderHistoryModel extends OrderHistoryEntity {
   const OrderHistoryModel({
     required super.id,
     required super.orderId,
-    required super.tableId,
+    required super.table,
     required super.paymentMethod,
     required super.createdAt,
     required super.servedAt,
@@ -22,7 +24,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return OrderHistoryModel(
       id: json[OrderHistoryApiMap.id] as String,
       orderId: json[OrderHistoryApiMap.orderId] as String,
-      tableId: json[OrderHistoryApiMap.tableId] as String,
+      table: TableModel.fromJson(json[OrderHistoryApiMap.table]),
       paymentMethod: json[OrderHistoryApiMap.paymentMethod] as String,
       createdAt: dateParse(json[kCreatedAt]),
       servedAt: dateParse(json[OrderHistoryApiMap.servedAt]),
@@ -39,7 +41,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return OrderHistoryModel(
       id: entity.id,
       orderId: entity.orderId,
-      tableId: entity.tableId,
+      table: entity.table,
       paymentMethod: entity.paymentMethod,
       createdAt: entity.createdAt,
       servedAt: entity.servedAt,
@@ -54,7 +56,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
   OrderHistoryModel copyWith({
     String? id,
     String? orderId,
-    String? tableId,
+    TableEntity? table,
     String? paymentMethod,
     DateTime? createdAt,
     DateTime? servedAt,
@@ -66,7 +68,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return OrderHistoryModel(
       id: id ?? this.id,
       orderId: orderId ?? this.orderId,
-      tableId: tableId ?? this.tableId,
+      table: table ?? this.table,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
       servedAt: servedAt ?? this.servedAt,
@@ -81,7 +83,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return {
       OrderHistoryApiMap.id: id,
       OrderHistoryApiMap.orderId: orderId,
-      OrderHistoryApiMap.tableId: tableId,
+      OrderHistoryApiMap.table: table,
       OrderHistoryApiMap.paymentMethod: paymentMethod,
       kCreatedAt: createdAt.toIso8601String(),
       OrderHistoryApiMap.servedAt: servedAt.toIso8601String(),

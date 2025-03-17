@@ -22,7 +22,7 @@ extension BuildContextExt on BuildContext {
       height -
       paddingOf.top -
       paddingOf.bottom -
-      AppBar().preferredSize.height -
+      AppBar(forceMaterialTransparency: true).preferredSize.height -
       kBottomNavigationBarHeight -
       5;
   // safe height without bottom nav height

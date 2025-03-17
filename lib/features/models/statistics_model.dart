@@ -11,14 +11,14 @@ class StatisticsModel extends StatisticsEntity {
     required super.paymentMethodSummary,
     required super.ordersByHour,
     required super.averageRating,
-    required super.totalComments,
+    required super.totalFeedbacks,
     required super.bestSellingItems,
   });
 
   factory StatisticsModel.fromJson(Map<String, dynamic> json) {
     return StatisticsModel(
       id: json[StatisticsApiMap.id] as String,
-      date: json[StatisticsApiMap.date] as String,
+      date: dateParse(json[StatisticsApiMap.date]),
       totalOrders: intParse(json[StatisticsApiMap.totalOrders]),
       totalRevenue: doubleParse(json[StatisticsApiMap.totalRevenue]),
       paymentMethodSummary:
@@ -28,11 +28,11 @@ class StatisticsModel extends StatisticsEntity {
           {},
       ordersByHour:
           (json[StatisticsApiMap.ordersByHour] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, intParse(value)),
+            (key, value) => MapEntry(intParse(key), intParse(value)),
           ) ??
           {},
       averageRating: doubleParse(json[StatisticsApiMap.averageRating]),
-      totalComments: intParse(json[StatisticsApiMap.totalComments]),
+      totalFeedbacks: intParse(json[StatisticsApiMap.totalFeedbacks]),
       bestSellingItems:
           (json[StatisticsApiMap.bestSellingItems] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, intParse(value)),
@@ -50,20 +50,20 @@ class StatisticsModel extends StatisticsEntity {
       paymentMethodSummary: entity.paymentMethodSummary,
       ordersByHour: entity.ordersByHour,
       averageRating: entity.averageRating,
-      totalComments: entity.totalComments,
+      totalFeedbacks: entity.totalFeedbacks,
       bestSellingItems: entity.bestSellingItems,
     );
   }
   @override
   StatisticsModel copyWith({
     String? id,
-    String? date,
+    DateTime? date,
     int? totalOrders,
     double? totalRevenue,
     Map<String, int>? paymentMethodSummary,
-    Map<String, int>? ordersByHour,
+    Map<int, int>? ordersByHour,
     double? averageRating,
-    int? totalComments,
+    int? totalFeedbacks,
     Map<String, int>? bestSellingItems,
   }) {
     return StatisticsModel(
@@ -74,7 +74,7 @@ class StatisticsModel extends StatisticsEntity {
       paymentMethodSummary: paymentMethodSummary ?? this.paymentMethodSummary,
       ordersByHour: ordersByHour ?? this.ordersByHour,
       averageRating: averageRating ?? this.averageRating,
-      totalComments: totalComments ?? this.totalComments,
+      totalFeedbacks: totalFeedbacks ?? this.totalFeedbacks,
       bestSellingItems: bestSellingItems ?? this.bestSellingItems,
     );
   }
@@ -88,7 +88,7 @@ class StatisticsModel extends StatisticsEntity {
       StatisticsApiMap.paymentMethodSummary: paymentMethodSummary,
       StatisticsApiMap.ordersByHour: ordersByHour,
       StatisticsApiMap.averageRating: averageRating,
-      StatisticsApiMap.totalComments: totalComments,
+      StatisticsApiMap.totalFeedbacks: totalFeedbacks,
       StatisticsApiMap.bestSellingItems: bestSellingItems,
     };
   }

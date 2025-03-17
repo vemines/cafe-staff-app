@@ -1,4 +1,3 @@
-// lib/features/data/datasources/remote/table_remote_data_source.dart
 import 'package:dio/dio.dart';
 
 import '../../../../../core/constants/api_endpoints.dart';
@@ -50,7 +49,11 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
   Future<List<AreaWithTablesModel>> getAreasWithTables() async {
     try {
       final response = await dio.get(ApiEndpoints.areasWithTables);
-      return (response.data as List).map((item) => AreaWithTablesModel.fromJson(item)).toList();
+      final List<AreaWithTablesModel> list = [];
+      for (var item in (response.data as List)) {
+        list.add(AreaWithTablesModel.fromJson(item));
+      }
+      return list;
     } on DioException catch (e, s) {
       handleDioException(e, s, 'getAreasWithTables()');
     } catch (e, s) {

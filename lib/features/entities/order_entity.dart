@@ -5,9 +5,9 @@ import 'order_item_entity.dart';
 class OrderEntity extends Equatable {
   final String id;
   final String tableId;
-  final String orderStatus;
   final DateTime timestamp;
   final List<OrderItemEntity> orderItems;
+  final double totalPrice;
   final String? createdBy;
   final DateTime? createdAt;
   final String? servedBy;
@@ -16,9 +16,9 @@ class OrderEntity extends Equatable {
   const OrderEntity({
     required this.id,
     required this.tableId,
-    required this.orderStatus,
     required this.timestamp,
     required this.orderItems,
+    required this.totalPrice,
     this.createdBy,
     this.createdAt,
     this.servedBy,
@@ -29,13 +29,13 @@ class OrderEntity extends Equatable {
   List<Object?> get props => [
     id,
     tableId,
-    orderStatus,
     timestamp,
     orderItems,
     createdBy,
     createdAt,
     servedBy,
     servedAt,
+    totalPrice,
   ];
 
   OrderEntity copyWith({
@@ -48,17 +48,18 @@ class OrderEntity extends Equatable {
     DateTime? createdAt,
     String? servedBy,
     DateTime? servedAt,
+    double? totalPrice,
   }) {
     return OrderEntity(
       id: id ?? this.id,
       tableId: tableId ?? this.tableId,
-      orderStatus: orderStatus ?? this.orderStatus,
       timestamp: timestamp ?? this.timestamp,
       orderItems: orderItems ?? this.orderItems,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       servedBy: servedBy ?? this.servedBy,
       servedAt: servedAt ?? this.servedAt,
+      totalPrice: totalPrice ?? this.totalPrice,
     );
   }
 }

@@ -27,6 +27,9 @@ class ApiEndpoints {
 
   // Orders
   static String orders = '/orders';
+  static String mergeOrder = '/orders/merge-request';
+  static String splitOrder = '/orders/split';
+  static String approveMergeOrder = '/orders/merge-approve';
   static String singleOrder(String id) => '$orders/$id';
 
   // Order History

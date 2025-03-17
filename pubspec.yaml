@@ -8,8 +8,10 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
+  another_flutter_splash_screen: ^1.2.1
   cupertino_icons: ^1.0.8
   dartz: ^0.10.1
+  device_preview: ^1.1.0
   dio: ^5.8.0+1
   equatable: ^2.0.7
   flutter:
@@ -22,11 +24,16 @@ dependencies:
   go_router: ^14.8.0
   google_fonts: ^6.2.1
   internet_connection_checker_plus: ^2.7.0
+  intl: ^0.19.0
+  lottie: ^3.3.1
   shared_preferences: ^2.5.2
+  socket_io_client: ^3.0.2
+  syncfusion_flutter_charts: ^28.2.11
 
 dev_dependencies:
   bloc_test: ^10.0.0
   flutter_lints: ^5.0.0
+  flutter_lorem: ^2.0.0
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.4
@@ -35,3 +42,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/lang/
+    - assets/images/
+    - assets/lottie/

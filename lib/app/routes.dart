@@ -13,10 +13,10 @@ class Paths {
 final routes = GoRouter(
   initialLocation: Paths.login,
   redirect: (context, state) async {
-    final userCubit = sl<AuthCubit>();
-    await userCubit.getLoggedInUser();
+    final authCubit = sl<AuthCubit>();
+    await authCubit.getLoggedInUser();
 
-    final isAuthenticated = userCubit.state is AuthAuthenticated;
+    final isAuthenticated = authCubit.state is AuthAuthenticated;
 
     final isLoginPage = state.uri.path == Paths.login;
     return isAuthenticated && !isLoginPage ? null : Paths.login;

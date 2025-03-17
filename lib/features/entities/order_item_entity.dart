@@ -1,34 +1,35 @@
+import 'menu_item_entity.dart';
 import 'package:equatable/equatable.dart';
 
 class OrderItemEntity extends Equatable {
   final String id;
   final String orderId;
-  final String menuItemId;
+  final MenuItemEntity menuItem;
   final int quantity;
   final double price;
 
   const OrderItemEntity({
     required this.id,
     required this.orderId,
-    required this.menuItemId,
+    required this.menuItem,
     required this.quantity,
     required this.price,
   });
 
   @override
-  List<Object?> get props => [id, orderId, menuItemId, quantity, price];
+  List<Object?> get props => [id, orderId, menuItem, quantity, price];
 
   OrderItemEntity copyWith({
     String? id,
     String? orderId,
-    String? menuItemId,
+    MenuItemEntity? menuItem,
     int? quantity,
     double? price,
   }) {
     return OrderItemEntity(
       id: id ?? this.id,
       orderId: orderId ?? this.orderId,
-      menuItemId: menuItemId ?? this.menuItemId,
+      menuItem: menuItem ?? this.menuItem,
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
     );
