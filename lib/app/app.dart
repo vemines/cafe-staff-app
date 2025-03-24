@@ -1,9 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import '../configs/configs.dart';
-import '../features/blocs/auth/auth_cubit.dart';
+import '/configs/configs.dart';
+import '/features/blocs/auth/auth_cubit.dart';
 import '../injection_container.dart';
 import 'cubits/cubits.dart';
 import 'locale.dart';
@@ -19,7 +21,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => LocaleCubit()),
         // Provide feature-specific BLoCs using GetIt
-        BlocProvider(create: (context) => sl<AuthCubit>()..getLoggedInUser()),
+        BlocProvider(create: (context) => sl<AuthCubit>()),
       ],
       child: const _App(),
     );
@@ -46,6 +48,7 @@ class _App extends StatelessWidget {
     return MaterialApp.router(
       title: kAppName,
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       theme: theme,
       routerConfig: routes,
       locale: locale,
@@ -67,4 +70,28 @@ class _App extends StatelessWidget {
       },
     );
   }
+}
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    switch (getPlatform(context)) {
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.iOS:
+        return super.getScrollPhysics(context);
+    }
+  }
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.trackpad,
+  };
 }

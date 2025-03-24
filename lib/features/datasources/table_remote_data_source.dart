@@ -1,18 +1,18 @@
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
-import '../models/area_table_model.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
+import '../models/area_model.dart';
 import '../models/area_with_table_model.dart';
 import '../models/table_model.dart';
 
 abstract class TableRemoteDataSource {
-  Future<List<AreaTableModel>> getAllAreas();
-  Future<AreaTableModel> createArea({required String name});
-  Future<AreaTableModel> updateArea({required String id, required String name});
+  Future<AreaModel> createArea({required String name});
+  Future<AreaModel> updateArea({required String id, required String name});
   Future<void> deleteArea({required String id});
-
-  Future<List<TableModel>> getAllTables({required int page, required int limit, String? areaId});
+  Future<List<TableModel>> getAllTables();
+  Future<List<AreaModel>> getAllAreasTable();
   Future<TableModel> createTable({
     required String tableName,
     required String status,
@@ -20,9 +20,9 @@ abstract class TableRemoteDataSource {
   });
   Future<TableModel> updateTable({
     required String id,
-    required String tableName,
-    required String status,
-    required String areaId,
+    String? name,
+    String? status,
+    String? areaId,
   });
   Future<void> deleteTable({required String id});
   Future<List<AreaWithTablesModel>> getAreasWithTables();
@@ -34,18 +34,6 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
   TableRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<List<AreaTableModel>> getAllAreas() async {
-    try {
-      final response = await dio.get(ApiEndpoints.areaTables);
-      return (response.data as List).map((item) => AreaTableModel.fromJson(item)).toList();
-    } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAllAreas()');
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
   Future<List<AreaWithTablesModel>> getAreasWithTables() async {
     try {
       final response = await dio.get(ApiEndpoints.areasWithTables);
@@ -55,31 +43,58 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
       }
       return list;
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAreasWithTables()');
+      handleDioException(e, s, 'TableRemoteDataSource.getAreasWithTables');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<AreaTableModel> createArea({required String name}) async {
+  Future<AreaModel> createArea({required String name}) async {
     try {
-      final response = await dio.post(ApiEndpoints.areaTables, data: {'name': name});
-      return AreaTableModel.fromJson(response.data);
+      final response = await dio.post(ApiEndpoints.areas, data: {AreaApiMap.name: name});
+      return AreaModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'createArea({required String name})');
+      handleDioException(e, s, 'TableRemoteDataSource.createArea');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<AreaTableModel> updateArea({required String id, required String name}) async {
+  Future<List<TableModel>> getAllTables() async {
     try {
-      final response = await dio.patch(ApiEndpoints.singleAreaTable(id), data: {'name': name});
-      return AreaTableModel.fromJson(response.data);
+      final response = await dio.get(ApiEndpoints.tables);
+      return (response.data as List).map((item) => TableModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'updateArea({required String id, required String name})');
+      handleDioException(e, s, 'TableRemoteDataSource.createArea');
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<List<AreaModel>> getAllAreasTable() async {
+    try {
+      final response = await dio.get(ApiEndpoints.areas);
+      return (response.data as List).map((item) => AreaModel.fromJson(item)).toList();
+    } on DioException catch (e, s) {
+      handleDioException(e, s, 'TableRemoteDataSource.createArea');
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<AreaModel> updateArea({required String id, String? name}) async {
+    try {
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData[AreaApiMap.name] = name;
+
+      final response = await dio.patch(ApiEndpoints.singleArea(id), data: updateData);
+      return AreaModel.fromJson(response.data);
+    } on DioException catch (e, s) {
+      handleDioException(e, s, 'TableRemoteDataSource.updateArea');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -88,32 +103,9 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
   @override
   Future<void> deleteArea({required String id}) async {
     try {
-      await dio.delete(ApiEndpoints.singleAreaTable(id));
+      await dio.delete(ApiEndpoints.singleArea(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteArea({required String id})');
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
-  Future<List<TableModel>> getAllTables({
-    required int page,
-    required int limit,
-    String? areaId,
-  }) async {
-    try {
-      final response = await dio.get(
-        ApiEndpoints.tables,
-        queryParameters: {'page': page, 'limit': limit, 'areaId': areaId},
-      );
-      return (response.data as List).map((item) => TableModel.fromJson(item)).toList();
-    } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getAllTables({required int page, required int limit, String? areaId})',
-      );
+      handleDioException(e, s, 'TableRemoteDataSource.deleteArea');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -128,15 +120,11 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
     try {
       final response = await dio.post(
         ApiEndpoints.tables,
-        data: {'tableName': tableName, 'status': status, 'areaId': areaId},
+        data: {TableApiMap.name: tableName, TableApiMap.status: status, TableApiMap.areaId: areaId},
       );
       return TableModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'createTable({required String tableName, required String status, required String areaId})',
-      );
+      handleDioException(e, s, 'TableRemoteDataSource.createTable');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -145,22 +133,20 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
   @override
   Future<TableModel> updateTable({
     required String id,
-    required String tableName,
-    required String status,
-    required String areaId,
+    String? name,
+    String? status,
+    String? areaId,
   }) async {
     try {
-      final response = await dio.patch(
-        ApiEndpoints.singleTable(id),
-        data: {'tableName': tableName, 'status': status, 'areaId': areaId},
-      );
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData[TableApiMap.name] = name;
+      if (status != null) updateData[TableApiMap.status] = status;
+      if (areaId != null) updateData[TableApiMap.areaId] = areaId;
+
+      final response = await dio.patch(ApiEndpoints.singleTable(id), data: updateData);
       return TableModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'updateTable({required String id, required String tableName, required String status, required String areaId})',
-      );
+      handleDioException(e, s, 'TableRemoteDataSource.updateTable');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -171,7 +157,7 @@ class TableRemoteDataSourceImpl implements TableRemoteDataSource {
     try {
       await dio.delete(ApiEndpoints.singleTable(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteTable({required String id})');
+      handleDioException(e, s, 'TableRemoteDataSource.deleteTable');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

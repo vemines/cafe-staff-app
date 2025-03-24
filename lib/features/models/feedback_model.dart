@@ -1,5 +1,5 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/feedback_entity.dart';
 
 class FeedbackModel extends FeedbackEntity {

@@ -5,7 +5,7 @@ import 'order_entity.dart'; // Import OrderEntity
 
 class TableEntity extends Equatable {
   final String id;
-  final String tableName;
+  final String name;
   final TableStatus status;
   final String areaId;
   final int mergedTable;
@@ -13,7 +13,7 @@ class TableEntity extends Equatable {
 
   const TableEntity({
     required this.id,
-    required this.tableName,
+    required this.name,
     required this.status,
     required this.areaId,
     required this.mergedTable,
@@ -21,11 +21,11 @@ class TableEntity extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, tableName, status, areaId, mergedTable, order];
+  List<Object?> get props => [id, name, status, areaId, mergedTable, order];
 
   TableEntity copyWith({
     String? id,
-    String? tableName,
+    String? name,
     TableStatus? status,
     String? areaId,
     int? mergedTable,
@@ -33,7 +33,7 @@ class TableEntity extends Equatable {
   }) {
     return TableEntity(
       id: id ?? this.id,
-      tableName: tableName ?? this.tableName,
+      name: name ?? this.name,
       status: status ?? this.status,
       areaId: areaId ?? this.areaId,
       mergedTable: mergedTable ?? this.mergedTable,

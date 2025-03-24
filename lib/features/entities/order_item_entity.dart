@@ -1,5 +1,6 @@
-import 'menu_item_entity.dart';
 import 'package:equatable/equatable.dart';
+
+import 'menu_item_entity.dart';
 
 class OrderItemEntity extends Equatable {
   final String id;

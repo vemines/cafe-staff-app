@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -27,7 +28,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await dio.post(
         ApiEndpoints.login,
-        data: {'username': username, 'password': password},
+        data: {UserApiMap.username: username, UserApiMap.password: password},
       );
       final user = UserModel.fromJson(response.data['user']);
 
@@ -35,7 +36,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       return user;
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'login(String username, String password)');
+      handleDioException(e, s, 'AuthRemoteDataSource.login');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -55,23 +56,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await dio.post(
         ApiEndpoints.users,
         data: {
-          'username': username,
-          'fullname': fullname,
-          'role': role,
-          'password': password,
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'isActive': isActive,
+          UserApiMap.username: username,
+          UserApiMap.fullname: fullname,
+          UserApiMap.role: role,
+          UserApiMap.password: password,
+          UserApiMap.email: email,
+          UserApiMap.phoneNumber: phoneNumber,
+          isActive: isActive,
         },
       );
+      // Assuming the user is directly in response.data
       final user = UserModel.fromJson(response.data);
       return user;
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'register(String username, String fullname, String role, String password, String email, String phoneNumber, bool isActive)',
-      );
+      handleDioException(e, s, 'AuthRemoteDataSource.register');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

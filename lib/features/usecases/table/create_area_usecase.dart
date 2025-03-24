@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/errors/failures.dart';
-import '../../../core/usecase/usecase.dart';
-import '../../entities/area_table_entity.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/usecase.dart';
+import '../../entities/area_entity.dart';
 import '../../repositories/table_repository.dart';
 
 class CreateAreaParams extends Equatable {
@@ -15,13 +15,13 @@ class CreateAreaParams extends Equatable {
   List<Object?> get props => [name];
 }
 
-class CreateAreaUseCase implements UseCase<AreaTableEntity, CreateAreaParams> {
+class CreateAreaUseCase implements UseCase<AreaEntity, CreateAreaParams> {
   final TableRepository repository;
 
   CreateAreaUseCase(this.repository);
 
   @override
-  Future<Either<Failure, AreaTableEntity>> call(CreateAreaParams params) async {
+  Future<Either<Failure, AreaEntity>> call(CreateAreaParams params) async {
     return await repository.createArea(params);
   }
 }

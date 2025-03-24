@@ -5,7 +5,6 @@ import 'order_item_entity.dart';
 class OrderEntity extends Equatable {
   final String id;
   final String tableId;
-  final DateTime timestamp;
   final List<OrderItemEntity> orderItems;
   final double totalPrice;
   final String? createdBy;
@@ -16,7 +15,6 @@ class OrderEntity extends Equatable {
   const OrderEntity({
     required this.id,
     required this.tableId,
-    required this.timestamp,
     required this.orderItems,
     required this.totalPrice,
     this.createdBy,
@@ -29,7 +27,6 @@ class OrderEntity extends Equatable {
   List<Object?> get props => [
     id,
     tableId,
-    timestamp,
     orderItems,
     createdBy,
     createdAt,
@@ -42,7 +39,6 @@ class OrderEntity extends Equatable {
     String? id,
     String? tableId,
     String? orderStatus,
-    DateTime? timestamp,
     List<OrderItemEntity>? orderItems,
     String? createdBy,
     DateTime? createdAt,
@@ -53,7 +49,6 @@ class OrderEntity extends Equatable {
     return OrderEntity(
       id: id ?? this.id,
       tableId: tableId ?? this.tableId,
-      timestamp: timestamp ?? this.timestamp,
       orderItems: orderItems ?? this.orderItems,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,

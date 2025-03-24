@@ -160,13 +160,13 @@ userid: {{adminUserId}}
 ### --- Tables (Admin Only) ---
 
 # Get all areas (No Auth)
-GET {{baseURL}}/areaTables
+GET {{baseURL}}/areas
 ### Get all tables (No Auth)
 GET {{baseURL}}/tables
 userid: {{adminUserId}}
 
 ### Create a new area (Admin)
-POST {{baseURL}}/areaTables
+POST {{baseURL}}/areas
 Content-Type: application/json
 userid: {{adminUserId}}
 
@@ -192,6 +192,8 @@ userid: {{adminUserId}}
 ### Get all table (No Auth)
 GET {{baseURL}}/areas-with-tables
 userid: {{serverUserId}}
+
+
 
 ### --- Orders ---
 # Get all orders (Server/Admin/Cashier)
@@ -243,10 +245,6 @@ userid: {{cashierUserId}}
 
 # Get order history (any authenticated user)
 GET {{baseURL}}/orderHistory
-userid: {{cashierUserId}}
-
-### Get Order history by Id
-GET {{baseURL}}/orderHistory/history-{{newOrderId}}
 userid: {{cashierUserId}}
 
 ### --- Feedback ---

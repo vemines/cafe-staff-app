@@ -1,18 +1,18 @@
-// lib/features/data/datasources/remote/order_history_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../models/order_history_model.dart';
 
 abstract class OrderHistoryRemoteDataSource {
-  Future<List<OrderHistoryModel>> getAllOrderHistory({
-    required int page,
-    required int limit,
+  Future<Map<String, dynamic>> getAllOrderHistory({
     DateTime? startDate,
     DateTime? endDate,
+    String? paymentMethod,
+    required int limit,
+    required int page,
   });
-  Future<OrderHistoryModel> getOrderHistoryById({required String id});
 }
 
 class OrderHistoryRemoteDataSourceImpl implements OrderHistoryRemoteDataSource {
@@ -21,41 +21,31 @@ class OrderHistoryRemoteDataSourceImpl implements OrderHistoryRemoteDataSource {
   OrderHistoryRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<List<OrderHistoryModel>> getAllOrderHistory({
-    required int page,
-    required int limit,
+  Future<Map<String, dynamic>> getAllOrderHistory({
     DateTime? startDate,
     DateTime? endDate,
+    String? paymentMethod,
+    required int limit,
+    required int page,
   }) async {
     try {
       final response = await dio.get(
         ApiEndpoints.orderHistory,
         queryParameters: {
-          'page': page,
+          if (startDate != null) 'startDate': startDate.toIso8601String(),
+          if (endDate != null) 'endDate': endDate.toIso8601String(),
+          if (paymentMethod != null) OrderHistoryApiMap.paymentMethod: paymentMethod,
           'limit': limit,
-          'startDate': startDate?.toIso8601String(),
-          'endDate': endDate?.toIso8601String(),
+          'page': page,
         },
       );
-      return (response.data as List).map((item) => OrderHistoryModel.fromJson(item)).toList();
-    } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getAllOrderHistory({required int page, required int limit, DateTime? startDate, DateTime? endDate})',
-      );
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
 
-  @override
-  Future<OrderHistoryModel> getOrderHistoryById({required String id}) async {
-    try {
-      final response = await dio.get(ApiEndpoints.singleOrderHistory(id));
-      return OrderHistoryModel.fromJson(response.data);
+      final data =
+          (response.data['data'] as List).map((item) => OrderHistoryModel.fromJson(item)).toList();
+      final hasMore = response.data['hasMore'] as bool;
+      return {'data': data, 'hasMore': hasMore};
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getOrderHistoryById({required String id})');
+      handleDioException(e, s, 'OrderHistoryRemoteDataSource.getAllOrderHistory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

@@ -1,32 +1,29 @@
 import 'package:dartz/dartz.dart';
 
-import '../../core/errors/exceptions.dart';
-import '../../core/errors/failures.dart';
-import '../../core/network/network_info.dart';
-import '../../core/usecase/usecase.dart';
+import '/core/errors/exceptions.dart';
+import '/core/errors/failures.dart';
+import '/core/network/network_info.dart';
+import '/core/usecase/usecase.dart';
 import '../datasources/table_remote_data_source.dart';
-import '../entities/area_table_entity.dart';
+import '../entities/area_entity.dart';
 import '../entities/area_with_table_entity.dart';
 import '../entities/table_entity.dart';
 import '../usecases/table/create_area_usecase.dart';
 import '../usecases/table/create_table_usecase.dart';
 import '../usecases/table/delete_area_usecase.dart';
 import '../usecases/table/delete_table_usecase.dart';
-import '../usecases/table/get_all_tables_usecase.dart';
 import '../usecases/table/update_area_usecase.dart';
 import '../usecases/table/update_table_usecase.dart';
 
 abstract class TableRepository {
-  Future<Either<Failure, List<AreaTableEntity>>> getAllAreas(NoParams params);
-  Future<Either<Failure, AreaTableEntity>> createArea(CreateAreaParams params);
-  Future<Either<Failure, AreaTableEntity>> updateArea(UpdateAreaParams params);
+  Future<Either<Failure, AreaEntity>> createArea(CreateAreaParams params);
+  Future<Either<Failure, AreaEntity>> updateArea(UpdateAreaParams params);
   Future<Either<Failure, Unit>> deleteArea(DeleteAreaParams params);
-
-  Future<Either<Failure, List<TableEntity>>> getAllTables(GetAllTablesParams params);
+  Future<Either<Failure, List<AreaEntity>>> getAllAreasTable(NoParams params);
+  Future<Either<Failure, List<TableEntity>>> getAllTables(NoParams params);
   Future<Either<Failure, TableEntity>> createTable(CreateTableParams params);
   Future<Either<Failure, TableEntity>> updateTable(UpdateTableParams params);
   Future<Either<Failure, Unit>> deleteTable(DeleteTableParams params);
-
   Future<Either<Failure, List<AreaWithTablesEntity>>> getAreasWithTables(NoParams params);
 }
 
@@ -37,21 +34,33 @@ class TableRepositoryImpl implements TableRepository {
   TableRepositoryImpl({required this.remoteDataSource, required this.networkInfo});
 
   @override
-  Future<Either<Failure, List<AreaTableEntity>>> getAllAreas(NoParams params) async {
+  Future<Either<Failure, List<TableEntity>>> getAllTables(NoParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteAreas = await remoteDataSource.getAllAreas();
-        return Right(remoteAreas);
+        final tables = await remoteDataSource.getAllTables();
+        return Right(tables);
       } catch (e) {
         return Left(handleRepositoryException(e));
       }
-    } else {
-      return const Left(NoInternetFailure());
     }
+    return const Left(NoInternetFailure());
   }
 
   @override
-  Future<Either<Failure, AreaTableEntity>> createArea(CreateAreaParams params) async {
+  Future<Either<Failure, List<AreaEntity>>> getAllAreasTable(NoParams params) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final areasTable = await remoteDataSource.getAllAreasTable();
+        return Right(areasTable);
+      } catch (e) {
+        return Left(handleRepositoryException(e));
+      }
+    }
+    return const Left(NoInternetFailure());
+  }
+
+  @override
+  Future<Either<Failure, AreaEntity>> createArea(CreateAreaParams params) async {
     if (await networkInfo.isConnected) {
       try {
         final remoteArea = await remoteDataSource.createArea(name: params.name);
@@ -65,7 +74,7 @@ class TableRepositoryImpl implements TableRepository {
   }
 
   @override
-  Future<Either<Failure, AreaTableEntity>> updateArea(UpdateAreaParams params) async {
+  Future<Either<Failure, AreaEntity>> updateArea(UpdateAreaParams params) async {
     if (await networkInfo.isConnected) {
       try {
         final remoteArea = await remoteDataSource.updateArea(id: params.id, name: params.name);
@@ -84,24 +93,6 @@ class TableRepositoryImpl implements TableRepository {
       try {
         await remoteDataSource.deleteArea(id: params.id);
         return const Right(unit);
-      } catch (e) {
-        return Left(handleRepositoryException(e));
-      }
-    } else {
-      return const Left(NoInternetFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<TableEntity>>> getAllTables(GetAllTablesParams params) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final remoteTables = await remoteDataSource.getAllTables(
-          page: params.page,
-          limit: params.limit,
-          areaId: params.areaId,
-        );
-        return Right(remoteTables);
       } catch (e) {
         return Left(handleRepositoryException(e));
       }
@@ -134,7 +125,7 @@ class TableRepositoryImpl implements TableRepository {
       try {
         final remoteTable = await remoteDataSource.updateTable(
           id: params.id,
-          tableName: params.tableName,
+          name: params.name,
           status: params.status,
           areaId: params.areaId,
         );

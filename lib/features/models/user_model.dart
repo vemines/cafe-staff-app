@@ -1,5 +1,5 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/user_entity.dart';
 
 class UserModel extends UserEntity {
@@ -23,7 +23,7 @@ class UserModel extends UserEntity {
       role: json[UserApiMap.role] as String,
       email: json[UserApiMap.email] as String,
       phoneNumber: json[UserApiMap.phoneNumber] as String,
-      isActive: json[UserApiMap.isActive] as bool,
+      isActive: boolParse(json[UserApiMap.isActive]),
       createdAt: dateParse(json[kCreatedAt]),
       updatedAt: dateParse(json[kUpdatedAt]),
     );

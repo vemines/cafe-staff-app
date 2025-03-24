@@ -6,4 +6,8 @@ double doubleParse(dynamic value, {double fallbackValue = 0}) {
   return value is num ? value.toDouble() : (double.tryParse(value.toString()) ?? fallbackValue);
 }
 
-DateTime dateParse(String date) => DateTime.tryParse(date) ?? DateTime(3035);
+DateTime dateParse(Object? date) => DateTime.tryParse(date.toString()) ?? DateTime(3000);
+
+DateTime? dateParseNullAble(Object? date) => DateTime.tryParse(date.toString());
+
+bool boolParse(dynamic value) => value is bool ? value : value.toString() == "true";

@@ -20,23 +20,23 @@ class CategoryLoaded extends CategoryState {
   List<Object> get props => [categories];
 }
 
-class CategoryCreated extends CategoryState {
-  final CategoryEntity category;
+// class CategoryCreated extends CategoryState {
+//   final CategoryEntity category;
 
-  const CategoryCreated({required this.category});
-  @override
-  List<Object> get props => [category];
-}
+//   const CategoryCreated({required this.category});
+//   @override
+//   List<Object> get props => [category];
+// }
 
-class CategoryUpdated extends CategoryState {
-  final CategoryEntity category;
+// class CategoryUpdated extends CategoryState {
+//   final CategoryEntity category;
 
-  const CategoryUpdated({required this.category});
-  @override
-  List<Object> get props => [category];
-}
+//   const CategoryUpdated({required this.category});
+//   @override
+//   List<Object> get props => [category];
+// }
 
-class CategoryDeleted extends CategoryState {}
+// class CategoryDeleted extends CategoryState {}
 
 class CategoryError extends CategoryState {
   final Failure failure;

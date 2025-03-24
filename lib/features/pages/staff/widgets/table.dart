@@ -1,11 +1,11 @@
-// lib/features/pages/staff/widgets/table.dart (No change needed)
-
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../../entities/table_entity.dart';
-import '/core/extensions/num_extension.dart';
+
 import '/core/constants/enum.dart';
-import '/core/widgets/widgets.dart';
+import '/core/extensions/num_extensions.dart';
+import '/core/widgets/space.dart';
+import '../../../entities/table_entity.dart';
 
 final _infoStyle = const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black);
 final _timerStyle = const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black);
@@ -32,6 +32,15 @@ class TableWidget extends StatefulWidget {
 }
 
 class _TableWidgetState extends State<TableWidget> {
+  String mergeTable = '';
+
+  @override
+  void initState() {
+    final mergeTableNumber = widget.table.mergedTable;
+    if (mergeTableNumber > 1) mergeTable = ' ($mergeTableNumber)';
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -45,24 +54,24 @@ class _TableWidgetState extends State<TableWidget> {
           Container(
             width: 110,
             height: 110,
-            padding: const EdgeInsets.all(8),
+            padding: eiAll2,
             decoration: BoxDecoration(
               color: tableColor(widget.table.status),
-              borderRadius: 10.radius,
+              borderRadius: 10.borderRadius,
               border: Border.all(color: _borderColor),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(widget.table.tableName, style: _infoStyle),
+                Text(widget.table.name, style: _infoStyle),
                 if (widget.table.order != null) ...[
-                  sbH1(),
+                  sbH1,
                   Text(
-                    '${widget.table.order!.totalPrice.toStringAsFixed(2)} \$',
+                    '${widget.table.order!.totalPrice.shortMoneyString} \$$mergeTable',
                     softWrap: true,
                     style: _infoStyle,
                   ),
-                  sbH1(),
+                  sbH1,
                   TimerWidget(createdAt: widget.table.order!.createdAt!),
                 ],
               ],
@@ -81,7 +90,7 @@ class _TableWidgetState extends State<TableWidget> {
       decoration: BoxDecoration(
         color: tableColor(widget.table.status),
         border: Border.all(color: _borderColor),
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: 15.borderRadius,
       ),
     );
   }

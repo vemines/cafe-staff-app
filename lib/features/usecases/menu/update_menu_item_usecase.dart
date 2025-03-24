@@ -1,28 +1,29 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/errors/failures.dart';
-import '../../../core/usecase/usecase.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/usecase.dart';
 import '../../entities/menu_item_entity.dart';
 import '../../repositories/menu_repository.dart';
 
+// ignore: must_be_immutable
 class UpdateMenuItemParams extends Equatable {
   final String id;
-  final String name;
-  final String subCategoryId;
-  final double price;
-  final bool isAvailable;
+  String? name;
+  String? subCategoryId;
+  double? price;
+  bool? isActive;
 
-  const UpdateMenuItemParams({
+  UpdateMenuItemParams({
     required this.id,
-    required this.name,
-    required this.subCategoryId,
-    required this.price,
-    required this.isAvailable,
+    this.name,
+    this.subCategoryId,
+    this.price,
+    this.isActive,
   });
 
   @override
-  List<Object?> get props => [id, name, subCategoryId, price, isAvailable];
+  List<Object?> get props => [id, name, subCategoryId, price, isActive];
 }
 
 class UpdateMenuItemUseCase implements UseCase<MenuItemEntity, UpdateMenuItemParams> {

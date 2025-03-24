@@ -1,5 +1,5 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/order_entity.dart';
 import '../entities/order_item_entity.dart';
 import 'order_item_model.dart';
@@ -8,7 +8,6 @@ class OrderModel extends OrderEntity {
   const OrderModel({
     required super.id,
     required super.tableId,
-    required super.timestamp,
     required super.orderItems,
     required super.createdBy,
     required super.createdAt,
@@ -21,15 +20,15 @@ class OrderModel extends OrderEntity {
     return OrderModel(
       id: json[OrderApiMap.id] as String,
       tableId: json[OrderApiMap.tableId] as String,
-      timestamp: dateParse(json[OrderApiMap.timestamp]),
-      orderItems:
-          (json[OrderApiMap.orderItems] as List)
-              .map((item) => OrderItemModel.fromJson(item))
-              .toList(),
+      orderItems: [],
+      // orderItems:
+      //     (json[OrderApiMap.orderItems] as List)
+      //         .map((item) => OrderItemModel.fromJson(item))
+      //         .toList(),
       createdBy: json[OrderApiMap.createdBy] as String?,
-      createdAt: dateParse(json[OrderApiMap.createdAt]),
+      createdAt: dateParseNullAble(json[OrderApiMap.createdAt]),
       servedBy: json[OrderApiMap.servedBy] as String?,
-      servedAt: dateParse(json[OrderApiMap.servedAt]),
+      servedAt: dateParseNullAble(json[OrderApiMap.servedAt]),
       totalPrice: doubleParse(json[OrderApiMap.totalPrice]),
     );
   }
@@ -37,7 +36,6 @@ class OrderModel extends OrderEntity {
     return OrderModel(
       id: entity.id,
       tableId: entity.tableId,
-      timestamp: entity.timestamp,
       orderItems: entity.orderItems.map((e) => OrderItemModel.fromEntity(e)).toList(),
       createdBy: entity.createdBy,
       createdAt: entity.createdAt,
@@ -63,7 +61,6 @@ class OrderModel extends OrderEntity {
     return OrderModel(
       id: id ?? this.id,
       tableId: tableId ?? this.tableId,
-      timestamp: timestamp ?? this.timestamp,
       orderItems: orderItems ?? this.orderItems,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
@@ -77,7 +74,6 @@ class OrderModel extends OrderEntity {
     return {
       OrderApiMap.id: id,
       OrderApiMap.tableId: tableId,
-      OrderApiMap.timestamp: timestamp.toIso8601String(),
       OrderApiMap.orderItems: orderItems.map((item) => (item as OrderItemModel).toJson()).toList(),
       OrderApiMap.createdBy: createdBy,
       OrderApiMap.createdAt: createdAt?.toIso8601String(),

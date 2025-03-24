@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/errors/failures.dart';
-import '../../../core/usecase/usecase.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/usecase.dart';
 import '../../repositories/table_repository.dart';
 
 class DeleteAreaParams extends Equatable {

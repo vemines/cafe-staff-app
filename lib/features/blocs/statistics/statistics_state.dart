@@ -12,9 +12,18 @@ class StatisticsInitial extends StatisticsState {}
 class StatisticsLoading extends StatisticsState {}
 
 class DailyStatisticsLoaded extends StatisticsState {
+  final StatisticsEntity statistic;
+
+  const DailyStatisticsLoaded({required this.statistic});
+
+  @override
+  List<Object> get props => [statistic];
+}
+
+class WeeklyStatisticsLoaded extends StatisticsState {
   final List<StatisticsEntity> statistics;
 
-  const DailyStatisticsLoaded({required this.statistics});
+  const WeeklyStatisticsLoaded({required this.statistics});
 
   @override
   List<Object> get props => [statistics];

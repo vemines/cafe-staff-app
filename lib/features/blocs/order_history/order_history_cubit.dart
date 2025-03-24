@@ -1,37 +1,72 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/errors/failures.dart';
+import '/core/errors/failures.dart';
 import '../../entities/order_history_entity.dart';
 import '../../usecases/order_history/get_all_order_history_usecase.dart';
-import '../../usecases/order_history/get_order_history_by_id_usecase.dart';
 
 part 'order_history_state.dart';
 
 class OrderHistoryCubit extends Cubit<OrderHistoryState> {
   final GetAllOrderHistoryUseCase getAllOrderHistoryUseCase;
-  final GetOrderHistoryByIdUseCase getOrderHistoryByIdUseCase;
 
-  OrderHistoryCubit({
-    required this.getAllOrderHistoryUseCase,
-    required this.getOrderHistoryByIdUseCase,
-  }) : super(OrderHistoryInitial());
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool isLoadMore = false;
+  final int _limit = 40;
 
-  Future<void> getAllOrderHistory(GetAllOrderHistoryParams params) async {
-    emit(OrderHistoryLoading());
-    final result = await getAllOrderHistoryUseCase(params);
-    result.fold(
-      (failure) => emit(OrderHistoryError(failure: failure)),
-      (orderHistory) => emit(OrderHistoryLoaded(orderHistory: orderHistory)),
-    );
+  OrderHistoryCubit({required this.getAllOrderHistoryUseCase}) : super(OrderHistoryInitial());
+
+  Future<void> clearFilters() async {
+    _currentPage = 1;
+    _hasMore = true;
+    isLoadMore = false;
+    emit(OrderHistoryInitial());
+    getAllOrderHistory();
   }
 
-  Future<void> getOrderHistoryById(GetOrderHistoryByIdParams params) async {
-    emit(OrderHistoryLoading());
-    final result = await getOrderHistoryByIdUseCase(params);
+  Future<void> getAllOrderHistory({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? paymentMethod,
+    bool isLoadMore = false,
+  }) async {
+    if (!_hasMore && isLoadMore) return;
+
+    if (isLoadMore) {
+      isLoadMore = true;
+      emit(OrderHistoryLoadingMore(orderHistory: state.orderHistory));
+      _currentPage++;
+    } else {
+      isLoadMore = false;
+      emit(OrderHistoryLoading());
+      _currentPage = 1;
+      _hasMore = true;
+    }
+
+    final result = await getAllOrderHistoryUseCase(
+      GetAllOrderHistoryParams(
+        startDate: startDate,
+        endDate: endDate,
+        paymentMethod: paymentMethod,
+        page: _currentPage,
+        limit: _limit,
+      ),
+    );
+
     result.fold(
-      (failure) => emit(OrderHistoryError(failure: failure)),
-      (order) => emit(OrderHistoryLoaded(orderHistory: [order])),
+      (failure) {
+        isLoadMore = false;
+        emit(OrderHistoryError(failure: failure));
+      },
+      (response) {
+        // Now expects OrderHistoryResponse
+        isLoadMore = false;
+        final List<OrderHistoryEntity> newList = List.from(state.orderHistory); // Copy old
+        newList.addAll(response.data);
+        _hasMore = response.hasMore;
+        emit(OrderHistoryLoaded(orderHistory: newList, hasMore: _hasMore));
+      },
     );
   }
 }

@@ -1,15 +1,24 @@
 part of 'feedback_cubit.dart';
 
 abstract class FeedbackState extends Equatable {
-  const FeedbackState();
+  final List<FeedbackEntity> feedbacks;
+  final bool hasMore;
+
+  const FeedbackState({this.feedbacks = const [], this.hasMore = true});
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [feedbacks, hasMore];
 }
 
-class FeedbackInitial extends FeedbackState {}
+class FeedbackInitial extends FeedbackState {
+  const FeedbackInitial() : super();
+}
 
 class FeedbackLoading extends FeedbackState {}
+
+class FeedbackLoadingMore extends FeedbackState {
+  const FeedbackLoadingMore({required super.feedbacks});
+}
 
 class FeedbackCreated extends FeedbackState {
   final FeedbackEntity feedback;
@@ -21,12 +30,7 @@ class FeedbackCreated extends FeedbackState {
 }
 
 class FeedbackLoaded extends FeedbackState {
-  final List<FeedbackEntity> feedbacks;
-
-  const FeedbackLoaded({required this.feedbacks});
-
-  @override
-  List<Object> get props => [feedbacks];
+  const FeedbackLoaded({required super.feedbacks, required super.hasMore});
 }
 
 class FeedbackError extends FeedbackState {

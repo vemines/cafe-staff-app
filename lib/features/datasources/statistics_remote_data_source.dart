@@ -1,8 +1,7 @@
-// lib/features/data/datasources/remote/statistics_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/errors/exceptions.dart';
 import '../models/aggregated_statistics_model.dart';
 import '../models/statistics_model.dart';
 
@@ -22,12 +21,12 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
   @override
   Future<List<AggregatedStatisticsModel>> getAllAggregatedStatistics() async {
     try {
-      final response = await dio.get(ApiEndpoints.statisticsYears);
+      final response = await dio.get(ApiEndpoints.aggregatedStatistics);
       return (response.data as List)
           .map((item) => AggregatedStatisticsModel.fromJson(item))
           .toList();
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAllAggregatedStatistics()');
+      handleDioException(e, s, 'StatisticsRemoteDataSource.getAllAggregatedStatistics');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -39,7 +38,7 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
       final response = await dio.get(ApiEndpoints.todayStatistics);
       return StatisticsModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getTodayStatistics()');
+      handleDioException(e, s, 'StatisticsRemoteDataSource.getTodayStatistics');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -48,12 +47,12 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
   @override
   Future<List<AggregatedStatisticsModel>> getYearlyStatistics() async {
     try {
-      final response = await dio.get(ApiEndpoints.statisticsYears);
+      final response = await dio.get(ApiEndpoints.aggregatedStatistics);
       return (response.data as List)
           .map((item) => AggregatedStatisticsModel.fromJson(item))
           .toList();
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getYearlyStatistics()');
+      handleDioException(e, s, 'StatisticsRemoteDataSource.getYearlyStatistics');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -70,7 +69,7 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
         throw ServerException(message: "No statistics found for this week.");
       }
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getThisWeekStatistics()');
+      handleDioException(e, s, 'StatisticsRemoteDataSource.getThisWeekStatistics');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -82,7 +81,7 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
       final response = await dio.get(ApiEndpoints.statistics);
       return (response.data as List).map((item) => StatisticsModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAllStatistics()');
+      handleDioException(e, s, 'StatisticsRemoteDataSource.getAllStatistics');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

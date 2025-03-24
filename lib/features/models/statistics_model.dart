@@ -1,6 +1,8 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
+import '../entities/payment_statistic_entity.dart';
 import '../entities/statistics_entity.dart';
+import 'payment_statistic_model.dart';
 
 class StatisticsModel extends StatisticsEntity {
   const StatisticsModel({
@@ -12,10 +14,11 @@ class StatisticsModel extends StatisticsEntity {
     required super.ordersByHour,
     required super.averageRating,
     required super.totalFeedbacks,
-    required super.bestSellingItems,
+    required super.soldItems,
   });
 
   factory StatisticsModel.fromJson(Map<String, dynamic> json) {
+    // print(json[StatisticsApiMap.paymentMethodSummary]);
     return StatisticsModel(
       id: json[StatisticsApiMap.id] as String,
       date: dateParse(json[StatisticsApiMap.date]),
@@ -23,7 +26,10 @@ class StatisticsModel extends StatisticsEntity {
       totalRevenue: doubleParse(json[StatisticsApiMap.totalRevenue]),
       paymentMethodSummary:
           (json[StatisticsApiMap.paymentMethodSummary] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, intParse(value)),
+            (key, value) => MapEntry(
+              key, // This is the paymentName
+              PaymentStatisticModel.fromJson(value),
+            ),
           ) ??
           {},
       ordersByHour:
@@ -33,8 +39,8 @@ class StatisticsModel extends StatisticsEntity {
           {},
       averageRating: doubleParse(json[StatisticsApiMap.averageRating]),
       totalFeedbacks: intParse(json[StatisticsApiMap.totalFeedbacks]),
-      bestSellingItems:
-          (json[StatisticsApiMap.bestSellingItems] as Map<String, dynamic>?)?.map(
+      soldItems:
+          (json[StatisticsApiMap.soldItems] as Map<String, dynamic>?)?.map(
             (key, value) => MapEntry(key, intParse(value)),
           ) ??
           {},
@@ -47,24 +53,27 @@ class StatisticsModel extends StatisticsEntity {
       date: entity.date,
       totalOrders: entity.totalOrders,
       totalRevenue: entity.totalRevenue,
-      paymentMethodSummary: entity.paymentMethodSummary,
+      paymentMethodSummary: entity.paymentMethodSummary.map(
+        (key, value) => MapEntry(key, PaymentStatisticModel.fromEntity(value)),
+      ),
       ordersByHour: entity.ordersByHour,
       averageRating: entity.averageRating,
       totalFeedbacks: entity.totalFeedbacks,
-      bestSellingItems: entity.bestSellingItems,
+      soldItems: entity.soldItems,
     );
   }
+
   @override
   StatisticsModel copyWith({
     String? id,
     DateTime? date,
     int? totalOrders,
     double? totalRevenue,
-    Map<String, int>? paymentMethodSummary,
+    Map<String, PaymentStatisticEntity>? paymentMethodSummary,
     Map<int, int>? ordersByHour,
     double? averageRating,
     int? totalFeedbacks,
-    Map<String, int>? bestSellingItems,
+    Map<String, int>? soldItems,
   }) {
     return StatisticsModel(
       id: id ?? this.id,
@@ -75,21 +84,23 @@ class StatisticsModel extends StatisticsEntity {
       ordersByHour: ordersByHour ?? this.ordersByHour,
       averageRating: averageRating ?? this.averageRating,
       totalFeedbacks: totalFeedbacks ?? this.totalFeedbacks,
-      bestSellingItems: bestSellingItems ?? this.bestSellingItems,
+      soldItems: soldItems ?? this.soldItems,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       StatisticsApiMap.id: id,
-      StatisticsApiMap.date: date,
+      StatisticsApiMap.date: date.toIso8601String(),
       StatisticsApiMap.totalOrders: totalOrders,
       StatisticsApiMap.totalRevenue: totalRevenue,
-      StatisticsApiMap.paymentMethodSummary: paymentMethodSummary,
+      StatisticsApiMap.paymentMethodSummary: paymentMethodSummary.map(
+        (key, value) => MapEntry(key, (value as PaymentStatisticModel).toJson()),
+      ),
       StatisticsApiMap.ordersByHour: ordersByHour,
       StatisticsApiMap.averageRating: averageRating,
       StatisticsApiMap.totalFeedbacks: totalFeedbacks,
-      StatisticsApiMap.bestSellingItems: bestSellingItems,
+      StatisticsApiMap.soldItems: soldItems,
     };
   }
 }

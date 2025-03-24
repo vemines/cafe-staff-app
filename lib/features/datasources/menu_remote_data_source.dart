@@ -1,8 +1,8 @@
-// lib/features/data/datasources/remote/menu_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../models/category_model.dart';
 import '../models/menu_item_model.dart';
 import '../models/sub_category_model.dart';
@@ -11,14 +11,10 @@ import '../usecases/menu/get_complete_menu_usecase.dart';
 abstract class MenuRemoteDataSource {
   Future<List<CategoryModel>> getAllCategories();
   Future<CategoryModel> createCategory({required String name});
-  Future<CategoryModel> updateCategory({required String id, required String name});
+  Future<CategoryModel> updateCategory({required String id, String? name, bool? isActive});
   Future<void> deleteCategory({required String id});
 
-  Future<List<SubCategoryModel>> getAllSubCategories({
-    required int page,
-    required int limit,
-    String? categoryId,
-  });
+  Future<List<SubCategoryModel>> getAllSubCategories();
   Future<SubCategoryModel> createSubCategory({
     required String name,
     required String categoryId,
@@ -26,29 +22,25 @@ abstract class MenuRemoteDataSource {
   });
   Future<SubCategoryModel> updateSubCategory({
     required String id,
-    required String name,
-    required String categoryId,
-    required List<String> items,
+    String? name,
+    String? categoryId,
+    List<String>? items,
+    bool? isActive,
   });
   Future<void> deleteSubCategory({required String id});
 
-  Future<List<MenuItemModel>> getAllMenuItems({
-    required int page,
-    required int limit,
-    String? subcategoryId,
-  });
+  Future<List<MenuItemModel>> getAllMenuItems();
   Future<MenuItemModel> createMenuItem({
     required String name,
     required String subCategory,
     required double price,
-    required bool isAvailable,
   });
   Future<MenuItemModel> updateMenuItem({
     required String id,
-    required String name,
-    required String subCategoryId,
-    required double price,
-    required bool isAvailable,
+    String? name,
+    String? subCategoryId,
+    double? price,
+    bool? isActive,
   });
   Future<void> deleteMenuItem({required String id});
   Future<GetCompleteMenuResponse> getCompleteMenu();
@@ -65,7 +57,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
       final response = await dio.get(ApiEndpoints.categories);
       return (response.data as List).map((item) => CategoryModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAllCategories()');
+      handleDioException(e, s, 'MenuRemoteDataSource.getAllCategories');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -91,7 +83,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         menuItems: menuItems,
       );
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getCompleteMenu()');
+      handleDioException(e, s, 'MenuRemoteDataSource.getCompleteMenu');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -100,22 +92,30 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   @override
   Future<CategoryModel> createCategory({required String name}) async {
     try {
-      final response = await dio.post(ApiEndpoints.categories, data: {'name': name});
+      final response = await dio.post(
+        ApiEndpoints.categories,
+        data: {CategoryApiMap.name: name, CategoryApiMap.isActive: false},
+      );
       return CategoryModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'createCategory({required String name})');
+      handleDioException(e, s, 'MenuRemoteDataSource.createCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<CategoryModel> updateCategory({required String id, required String name}) async {
+  Future<CategoryModel> updateCategory({required String id, String? name, bool? isActive}) async {
     try {
-      final response = await dio.patch(ApiEndpoints.singleCategory(id), data: {'name': name});
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData[CategoryApiMap.name] = name;
+      if (name != null) updateData[CategoryApiMap.name] = name;
+      if (isActive != null) updateData[CategoryApiMap.isActive] = isActive;
+
+      final response = await dio.patch(ApiEndpoints.singleCategory(id), data: updateData);
       return CategoryModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'updateCategory({required String id, required String name})');
+      handleDioException(e, s, 'MenuRemoteDataSource.updateCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -126,30 +126,19 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     try {
       await dio.delete(ApiEndpoints.singleCategory(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteCategory({required String id})');
+      handleDioException(e, s, 'MenuRemoteDataSource.deleteCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<List<SubCategoryModel>> getAllSubCategories({
-    required int page,
-    required int limit,
-    String? categoryId,
-  }) async {
+  Future<List<SubCategoryModel>> getAllSubCategories() async {
     try {
-      final response = await dio.get(
-        ApiEndpoints.subcategories,
-        queryParameters: {'page': page, 'limit': limit, 'category': categoryId},
-      );
+      final response = await dio.get(ApiEndpoints.subcategories);
       return (response.data as List).map((item) => SubCategoryModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getAllSubCategories({required int page, required int limit, String? categoryId})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.getAllSubCategories');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -164,15 +153,16 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     try {
       final response = await dio.post(
         ApiEndpoints.subcategories,
-        data: {'name': name, 'category': categoryId, 'items': items},
+        data: {
+          SubCategoryApiMap.name: name,
+          SubCategoryApiMap.category: categoryId,
+          SubCategoryApiMap.items: items,
+          SubCategoryApiMap.isActive: false,
+        },
       );
       return SubCategoryModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'createSubCategory({required String name, required String categoryId, required List<String> items})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.createSubCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -181,22 +171,22 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   @override
   Future<SubCategoryModel> updateSubCategory({
     required String id,
-    required String name,
-    required String categoryId,
-    required List<String> items,
+    String? name,
+    String? categoryId,
+    List<String>? items,
+    bool? isActive,
   }) async {
     try {
-      final response = await dio.patch(
-        ApiEndpoints.singleSubcategory(id),
-        data: {'name': name, 'category': categoryId, 'items': items},
-      );
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData[SubCategoryApiMap.name] = name;
+      if (categoryId != null) updateData[SubCategoryApiMap.category] = categoryId;
+      if (items != null) updateData[SubCategoryApiMap.items] = items;
+      if (isActive != null) updateData[SubCategoryApiMap.isActive] = isActive;
+
+      final response = await dio.patch(ApiEndpoints.singleSubcategory(id), data: updateData);
       return SubCategoryModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'updateSubCategory({required String id, required String name, required String categoryId, required List<String> items})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.updateSubCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -207,30 +197,19 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     try {
       await dio.delete(ApiEndpoints.singleSubcategory(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteSubCategory({required String id})');
+      handleDioException(e, s, 'MenuRemoteDataSource.deleteSubCategory');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<List<MenuItemModel>> getAllMenuItems({
-    required int page,
-    required int limit,
-    String? subcategoryId,
-  }) async {
+  Future<List<MenuItemModel>> getAllMenuItems() async {
     try {
-      final response = await dio.get(
-        ApiEndpoints.menuItems,
-        queryParameters: {'page': page, 'limit': limit, 'subCategory': subcategoryId},
-      );
+      final response = await dio.get(ApiEndpoints.menuItems);
       return (response.data as List).map((item) => MenuItemModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getAllMenuItems({required int page, required int limit, String? subcategoryId})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.getAllMenuItems');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -241,25 +220,20 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     required String name,
     required String subCategory,
     required double price,
-    required bool isAvailable,
   }) async {
     try {
       final response = await dio.post(
         ApiEndpoints.menuItems,
         data: {
-          'name': name,
-          'subCategory': subCategory,
-          'price': price,
-          'isAvailable': isAvailable,
+          MenuItemApiMap.name: name,
+          MenuItemApiMap.subCategory: subCategory,
+          MenuItemApiMap.price: price,
+          MenuItemApiMap.isActive: false,
         },
       );
       return MenuItemModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'createMenuItem({required String name, required String subCategory, required double price, required bool isAvailable})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.createMenuItem');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -268,28 +242,22 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   @override
   Future<MenuItemModel> updateMenuItem({
     required String id,
-    required String name,
-    required String subCategoryId,
-    required double price,
-    required bool isAvailable,
+    String? name,
+    String? subCategoryId,
+    double? price,
+    bool? isActive,
   }) async {
     try {
-      final response = await dio.patch(
-        ApiEndpoints.singleMenuItem(id),
-        data: {
-          'name': name,
-          'subCategory': subCategoryId,
-          'price': price,
-          'isAvailable': isAvailable,
-        },
-      );
+      final updateData = <String, dynamic>{};
+      if (name != null) updateData[MenuItemApiMap.name] = name;
+      if (subCategoryId != null) updateData[MenuItemApiMap.subCategory] = subCategoryId;
+      if (price != null) updateData[MenuItemApiMap.price] = price;
+      if (isActive != null) updateData[MenuItemApiMap.isActive] = isActive;
+
+      final response = await dio.patch(ApiEndpoints.singleMenuItem(id), data: updateData);
       return MenuItemModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'updateMenuItem({required String id, required String name, required String subCategoryId, required double price, required bool isAvailable})',
-      );
+      handleDioException(e, s, 'MenuRemoteDataSource.updateMenuItem');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -300,7 +268,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     try {
       await dio.delete(ApiEndpoints.singleMenuItem(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteMenuItem({required String id})');
+      handleDioException(e, s, 'MenuRemoteDataSource.deleteMenuItem');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

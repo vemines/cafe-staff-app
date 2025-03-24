@@ -1,71 +1,96 @@
-import 'package:cafe_staff_app/app/flavor.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
+// // lib/core/services/socket_service.dart
+// import 'package:socket_io_client/socket_io_client.dart' as io;
 
-class SocketService {
-  late final io.Socket _socket;
-  final String userId;
+// import '/app/flavor.dart';
 
-  io.Socket get socket => _socket;
+// class SocketService {
+//   io.Socket? _socket;
+//   final Map<String, dynamic> Function() headers;
 
-  SocketService({required this.userId}) {
-    _initSocket();
-  }
+//   io.Socket? get socket => _socket;
 
-  Future<void> _initSocket() async {
-    Map<String, dynamic> headers = {};
-    headers = {'userid': userId, 'Content-Type': 'application/json'};
+//   SocketService({required this.headers});
 
-    _socket = io.io(
-      FlavorService.instance.config.baseUrl,
-      io.OptionBuilder()
-          .setTransports(['websocket'])
-          .setExtraHeaders(headers)
-          .enableAutoConnect()
-          .build(),
-    );
-    _socket.onConnect((_) {
-      print('Socket connected');
-    });
-    _socket.onDisconnect((_) => print('Socket disconnected'));
-    _socket.onConnectError((data) => print('Connect Error: $data'));
-    _socket.onError((data) => print('Socket Error: $data'));
-  }
+//   void connect() {
+//     if (_socket != null) {
+//       disconnect(); // Clean up any existing connection
+//     }
+//     print("CALL CONNECT");
+//     _socket = io.io(
+//       FlavorService.instance.config.baseUrl,
+//       io.OptionBuilder()
+//           .setTransports(['websocket'])
+//           .setExtraHeaders(headers()) // Call the function to get *current* headers.
+//           .enableAutoConnect() // Re-enable autoConnect (safer).
+//           .build(),
+//     );
 
-  // --- Methods to EMIT events ---
-  void emitOrderCreated(Map<String, dynamic> orderData) {
-    _socket.emit('order_created', orderData);
-  }
+//     _socket!.onConnect((_) {
+//       print('Socket connected');
+//     });
+//     _socket!.onDisconnect((_) => print('Socket disconnected'));
+//     _socket!.onConnectError((data) => print('Connect Error: $data'));
+//     _socket!.onError((data) => print('Socket Error: $data'));
+//   }
 
-  void emitTableStatusUpdated(String tableId, String status) {
-    _socket.emit('table_status_updated', {'tableId': tableId, 'status': status});
-  }
+//   void disconnect() {
+//     print("CALL DISCONNECT");
+//     if (_socket != null) {
+//       _socket!.disconnect();
+//       _socket = null;
+//     }
+//   }
 
-  void emitOrderUpdated(Map<String, dynamic> orderData) {
-    _socket.emit('order_updated', orderData);
-  }
+//   void dispose() {
+//     disconnect();
+//     _socket?.dispose();
+//   }
 
-  void emitOrderCompleted(Map<String, dynamic> orderData) {
-    _socket.emit('order_completed', orderData);
-  }
+//   void emitOrderCreated(Map<String, dynamic> orderData) {
+//     if (_socket != null) {
+//       _socket!.emit('order_created', orderData);
+//     }
+//   }
 
-  void emitMergeRequestCreated(Map<String, dynamic> mergeRequestData) {
-    _socket.emit('merge_request_created', mergeRequestData);
-  }
+//   void emitTableStatusUpdated(String tableId, String status) {
+//     if (_socket != null) {
+//       _socket!.emit('table_status_updated', {'tableId': tableId, 'status': status});
+//     }
+//   }
 
-  void emitMergeRequestApproved(Map<String, dynamic> data) {
-    _socket.emit('merge_request_approved', data);
-  }
+//   void emitOrderUpdated(Map<String, dynamic> orderData) {
+//     if (_socket != null) {
+//       _socket!.emit('order_updated', orderData);
+//     }
+//   }
 
-  void emitMergeRequestRejected(Map<String, dynamic> data) {
-    _socket.emit('merge_request_rejected', data);
-  }
+//   void emitOrderCompleted(Map<String, dynamic> orderData) {
+//     if (_socket != null) {
+//       _socket!.emit('order_completed', orderData);
+//     }
+//   }
 
-  void emitOrderSplitted(Map<String, dynamic> data) {
-    _socket.emit('order_splitted', data); //Use on backend
-  }
+//   void emitMergeRequestCreated(Map<String, dynamic> mergeRequestData) {
+//     if (_socket != null) {
+//       _socket!.emit('merge_request_created', mergeRequestData);
+//     }
+//   }
 
-  void dispose() {
-    _socket.disconnect();
-    _socket.dispose();
-  }
-}
+//   void emitMergeRequestApproved(Map<String, dynamic> data) {
+//     if (_socket != null) {
+//       _socket!.emit('merge_request_approved', data);
+//     }
+//   }
+
+//   void emitMergeRequestRejected(Map<String, dynamic> data) {
+//     if (_socket != null) {
+//       _socket!.emit('merge_request_rejected', data);
+//     }
+//   }
+
+//   void emitOrderSplitted(Map<String, dynamic> data) {
+//     if (_socket != null) {
+//       _socket!.emit('order_splitted', data);
+//     }
+//   }
+// }

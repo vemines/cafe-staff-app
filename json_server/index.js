@@ -1,3 +1,4 @@
+// --- FILE index.js ---
 const jsonServer = require('@wll8/json-server');
 const moment = require('moment');
 const { faker } = require('@faker-js/faker');
@@ -41,47 +42,75 @@ function hasRole(req, roles) {
   return user && roles.includes(user.role);
 }
 
-function updateStatistics(db, order) {
+async function updateStatistics(db, order) {
   const today = new Date().toISOString().split('T')[0];
   let stats = db.get('statistics').find({ date: today }).value();
+
   if (!stats) {
     stats = {
       id: `stats-${today}`,
       date: today,
       totalOrders: 0,
       totalRevenue: 0,
-      paymentMethodSummary: { cash: 0, 'online payment': 0 },
+      paymentMethodSummary: {},
       ordersByHour: Array(24).fill(0),
-      bestSellingItems: {},
+      soldItems: {},
       averageRating: 0,
       totalComments: 0,
     };
     db.get('statistics').push(stats).write();
   }
+
   stats.totalOrders += 1;
   let orderTotal = 0;
   order.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
-    orderTotal += menuItem.price * item.quantity;
+    if (menuItem) {
+      orderTotal += menuItem.price * item.quantity;
+    }
   });
   stats.totalRevenue += orderTotal;
-  stats.paymentMethodSummary[order.paymentMethod] =
-    (stats.paymentMethodSummary[order.paymentMethod] || 0) + 1;
+
+  const paymentMethodName = order.paymentMethod;
+  let paymentMethod = db.get('payments').find({ name: paymentMethodName }).value();
+
+  if (!paymentMethod) {
+    paymentMethod = {
+      id: faker.database.mongodbObjectId(),
+      name: paymentMethodName,
+      isActive: true,
+    };
+    db.get('payments').push(paymentMethod).write();
+  }
+
+  const paymentMethodId = paymentMethod.id;
+
+  if (!stats.paymentMethodSummary[paymentMethodId]) {
+    stats.paymentMethodSummary[paymentMethodId] = {
+      paymentId: paymentMethodId,
+      count: 0,
+      totalAmount: 0.0,
+    };
+  }
+  stats.paymentMethodSummary[paymentMethodId].count += 1;
+  stats.paymentMethodSummary[paymentMethodId].totalAmount += orderTotal;
+
   const hour = new Date(order.completedAt).getHours();
   if (!stats.ordersByHour) {
     stats.ordersByHour = Array(24).fill(0);
   }
   stats.ordersByHour[hour] = (stats.ordersByHour[hour] || 0) + 1;
+
   order.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
     if (menuItem) {
       const name = menuItem.name;
-      stats.bestSellingItems[name] = (stats.bestSellingItems[name] || 0) + item.quantity;
+      stats.soldItems[name] = (stats.soldItems[name] || 0) + item.quantity;
     }
   });
+
   db.get('statistics').find({ date: today }).assign(stats).write();
 }
-
 function performMonthlyRollover() {
   const db = router.db;
   const now = moment();
@@ -103,18 +132,29 @@ function performMonthlyRollover() {
       paymentMethodSummary: {},
       averageRating: 0,
       totalComments: lastMonthStats.reduce((sum, s) => sum + s.totalComments, 0),
-      bestSellingItems: {},
+      soldItems: {},
     };
 
     lastMonthStats.forEach((stat) => {
-      for (const method in stat.paymentMethodSummary) {
-        aggregatedStatsLastMonth.paymentMethodSummary[method] =
-          (aggregatedStatsLastMonth.paymentMethodSummary[method] || 0) +
-          stat.paymentMethodSummary[method];
+      for (const paymentId in stat.paymentMethodSummary) {
+        if (stat.paymentMethodSummary.hasOwnProperty(paymentId)) {
+          const paymentData = stat.paymentMethodSummary[paymentId];
+          if (!aggregatedStatsLastMonth.paymentMethodSummary[paymentId]) {
+            aggregatedStatsLastMonth.paymentMethodSummary[paymentId] = {
+              paymentId: paymentId,
+              count: 0,
+              totalAmount: 0.0,
+            };
+          }
+          aggregatedStatsLastMonth.paymentMethodSummary[paymentId].count += paymentData.count;
+          aggregatedStatsLastMonth.paymentMethodSummary[paymentId].totalAmount +=
+            paymentData.totalAmount;
+        }
       }
-      for (const item in stat.bestSellingItems) {
-        aggregatedStatsLastMonth.bestSellingItems[item] =
-          (aggregatedStatsLastMonth.bestSellingItems[item] || 0) + stat.bestSellingItems[item];
+
+      for (const item in stat.soldItems) {
+        aggregatedStatsLastMonth.soldItems[item] =
+          (aggregatedStatsLastMonth.soldItems[item] || 0) + stat.soldItems[item];
       }
     });
 
@@ -139,6 +179,7 @@ function performMonthlyRollover() {
     .get('statistics')
     .filter((stat) => moment(stat.date).format('YYYY-MM') === currentMonth)
     .value();
+
   if (currentMonthStats.length > 0) {
     const aggregatedStatsCurrentMonth = {
       id: currentMonth,
@@ -149,17 +190,28 @@ function performMonthlyRollover() {
       paymentMethodSummary: {},
       averageRating: 0,
       totalComments: currentMonthStats.reduce((sum, s) => sum + s.totalComments, 0),
-      bestSellingItems: {},
+      soldItems: {},
     };
     currentMonthStats.forEach((stat) => {
-      for (const method in stat.paymentMethodSummary) {
-        aggregatedStatsCurrentMonth.paymentMethodSummary[method] =
-          (aggregatedStatsCurrentMonth.paymentMethodSummary[method] || 0) +
-          stat.paymentMethodSummary[method];
+      for (const paymentId in stat.paymentMethodSummary) {
+        if (stat.paymentMethodSummary.hasOwnProperty(paymentId)) {
+          const paymentData = stat.paymentMethodSummary[paymentId];
+          if (!aggregatedStatsCurrentMonth.paymentMethodSummary[paymentId]) {
+            aggregatedStatsCurrentMonth.paymentMethodSummary[paymentId] = {
+              paymentId: paymentId,
+              count: 0,
+              totalAmount: 0.0,
+            };
+          }
+          aggregatedStatsCurrentMonth.paymentMethodSummary[paymentId].count += paymentData.count;
+          aggregatedStatsCurrentMonth.paymentMethodSummary[paymentId].totalAmount +=
+            paymentData.totalAmount;
+        }
       }
-      for (const item in stat.bestSellingItems) {
-        aggregatedStatsCurrentMonth.bestSellingItems[item] =
-          (aggregatedStatsCurrentMonth.bestSellingItems[item] || 0) + stat.bestSellingItems[item];
+
+      for (const item in stat.soldItems) {
+        aggregatedStatsCurrentMonth.soldItems[item] =
+          (aggregatedStatsCurrentMonth.soldItems[item] || 0) + stat.soldItems[item];
       }
     });
     const allRatings = currentMonthStats
@@ -189,7 +241,8 @@ server.post('/login', (req, res) => {
   const { username, password } = req.body;
   const user = db.get('users').find({ username, password }).value();
   if (user) {
-    res.json({ user: { id: user.id, username: user.username, role: user.role } });
+    const { password, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword });
   } else {
     res.status(401).json({ message: 'Invalid credentials' });
   }
@@ -210,10 +263,11 @@ server.use((req, res, next) => {
     '/categories',
     '/subCategories',
     '/menuItems',
-    '/areaTables',
+    '/areas',
     '/tables',
     '/areas-with-tables',
     '/feedback',
+    '/payments',
   ];
   const isPublicGet = publicGetPaths.some(
     (path) =>
@@ -239,6 +293,20 @@ server.use('/users', (req, res, next) => {
   next();
 });
 
+server.get('/users', (req, res) => {
+  const db = router.db;
+  let users = db.get('users');
+
+  users = users.filter((user) => user.role !== 'admin');
+
+  const userData = users.value().map((user) => {
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  });
+
+  res.json(userData);
+});
+
 server.use(['/categories', '/subCategories', '/menuItems'], (req, res, next) => {
   if (req.method !== 'GET' && !isAdmin(req)) {
     return res.status(403).json({ message: 'Forbidden' });
@@ -246,68 +314,74 @@ server.use(['/categories', '/subCategories', '/menuItems'], (req, res, next) => 
   next();
 });
 
-server.use(['/areaTables', '/tables'], (req, res, next) => {
+server.use(['/areas', '/tables'], (req, res, next) => {
   if (req.method !== 'GET' && !isAdmin(req)) {
     return res.status(403).json({ message: 'Forbidden' });
   }
   next();
 });
 
-// --- Areas with Tables (Enhanced) ---
 server.get('/areas-with-tables', (req, res) => {
   const db = router.db;
-  const areas = db.get('areaTables').value();
+  const areas = db.get('areas').value();
+  const tables = db.get('tables').value();
+  const activeOrders = db.get('orders').value();
 
   const areasWithTables = areas.map((area) => {
-    const tables = db
-      .get('tables')
-      .filter({ areaId: area.id })
-      .value()
-      .map((table) => {
-        const currentOrder = db
-          .get('orders')
-          .find({ tableId: table.id, orderStatus: { $ne: 'completed' } })
-          .value(); // Find non-completed
+    const tablesInArea = tables.filter((table) => table.areaId === area.id);
 
-        let orderData = null;
-        if (currentOrder) {
-          let orderTotal = 0;
-          currentOrder.orderItems.forEach((item) => {
+    const tablesWithOrders = tablesInArea.map((table) => {
+      const currentOrder = activeOrders.find((order) => order.tableId === table.id);
+
+      let orderData = null;
+      if (currentOrder) {
+        let orderTotal = 0;
+        const orderItems = currentOrder.orderItems
+          .map((item) => {
             const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
-            if (menuItem) {
-              orderTotal += menuItem.price * item.quantity;
+            if (!menuItem) {
+              console.warn(`Menu item not found for ID: ${item.menuItemId}`);
+              return null; // Handle missing menu item
             }
-          });
-
-          orderData = {
-            id: currentOrder.id,
-            // Include essential order details.  Crucially, createdAt is here.
-            createdAt: currentOrder.createdAt,
-            orderItems: currentOrder.orderItems.map((item) => ({
-              menuItemId: item.menuItemId,
+            orderTotal += menuItem.price * item.quantity;
+            return {
+              id: item.id,
+              orderId: currentOrder.id,
+              menuItem: menuItem,
               quantity: item.quantity,
-            })),
-            totalPrice: parseFloat(orderTotal.toFixed(2)),
-            //Include more if need
-          };
-        }
+              price: menuItem.price,
+            };
+          })
+          .filter((item) => item !== null);
 
-        return {
-          ...table,
-          order: orderData, // This is the embedded order (or null)
+        orderData = {
+          id: currentOrder.id,
+          tableId: currentOrder.tableId,
+          timestamp: currentOrder.timestamp,
+          orderItems: orderItems,
+          totalPrice: parseFloat(orderTotal.toFixed(2)),
+          createdBy: currentOrder.createdBy,
+          createdAt: currentOrder.createdAt,
+          servedBy: currentOrder.servedBy,
+          servedAt: currentOrder.servedAt,
         };
-      });
+      }
+
+      return {
+        ...table,
+        order: orderData,
+      };
+    });
 
     return {
       ...area,
-      tables: tables,
+      tables: tablesWithOrders,
     };
   });
 
   res.json(areasWithTables);
 });
 
-// --- Orders ---
 server.post('/orders', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -315,28 +389,23 @@ server.post('/orders', (req, res) => {
     return res.status(403).json({ message: 'Forbidden' });
   }
   const newOrder = req.body;
+
   const table = db.get('tables').find({ id: newOrder.tableId }).value();
   if (!table) {
     return res.status(400).json({ message: 'Invalid table ID' });
   }
 
-  // --- Simplified Check and Aggregation ---
-  const existingOrder = db
-    .get('orders')
-    .find({ tableId: newOrder.tableId }) // Removed id check
-    .value();
+  const existingOrder = db.get('orders').find({ tableId: newOrder.tableId }).value();
 
   const aggregatedOrderItems = [];
   const itemMap = new Map();
 
-  // Add existing order items to the map *if* an order exists
   if (existingOrder) {
     existingOrder.orderItems.forEach((item) => {
       itemMap.set(item.menuItemId, item.quantity);
     });
   }
 
-  // Aggregate quantities from the *current* request
   for (const item of newOrder.orderItems) {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
     if (!menuItem) {
@@ -357,7 +426,6 @@ server.post('/orders', (req, res) => {
     });
   });
 
-  // --- Simplified Create/Update ---
   newOrder.id = faker.database.mongodbObjectId();
   newOrder.timestamp = new Date().toISOString();
   newOrder.createdBy = userId;
@@ -377,14 +445,12 @@ server.post('/orders', (req, res) => {
   });
 
   if (existingOrder) {
-    // Update existing order
     db.get('orders')
       .find({ id: existingOrder.id })
       .assign({ ...existingOrder, ...newOrder, id: existingOrder.id })
       .write();
-    newOrder.id = existingOrder.id; // Keep the original ID for the response.
+    newOrder.id = existingOrder.id;
   } else {
-    // Create new order
     db.get('orders').push(newOrder).write();
   }
 
@@ -403,7 +469,7 @@ server.post('/orders', (req, res) => {
     .assign({ status: 'pending', order: orderData })
     .write();
 
-  io.emit('order_created', newOrder); // Keep 'order_created' for simplicity
+  io.emit('order_created', newOrder);
   io.emit('table_status_updated', {
     tableId: newOrder.tableId,
     status: 'pending',
@@ -412,21 +478,6 @@ server.post('/orders', (req, res) => {
   res.status(201).json(newOrder);
 });
 
-// Get today's orders - Filter by table status
-server.get('/orders', (req, res) => {
-  const db = router.db;
-  const today = moment().startOf('day').toISOString();
-  const orders = db
-    .get('orders')
-    .filter((order) => {
-      const table = db.get('tables').find({ id: order.tableId }).value();
-      return moment(order.timestamp).isSameOrAfter(today) && table && table.status !== 'completed';
-    })
-    .value();
-  res.json(orders);
-});
-
-// Update order (Serve and Complete)
 server.patch('/orders/:id', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -442,13 +493,12 @@ server.patch('/orders/:id', (req, res) => {
     return res.status(401).json({ message: 'Unauthorized' });
   }
   const user = db.get('users').find({ id: userId }).value();
-  const updatedOrder = req.body; // In this case, sent table status
+  const updatedOrder = req.body;
 
   if (hasRole(req, ['serve', 'admin']) && updatedOrder.status === 'served') {
     order.servedBy = userId;
     order.servedAt = new Date().toISOString();
 
-    // --- Calculate total price ---
     let totalPrice = 0;
     order.orderItems.forEach((item) => {
       const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -465,16 +515,15 @@ server.patch('/orders/:id', (req, res) => {
         quantity: item.quantity,
       })),
       totalPrice: parseFloat(totalPrice.toFixed(2)),
-      servedBy: order.servedBy, // Include
+      servedBy: order.servedBy,
       servedAt: order.servedAt,
     };
 
-    // --- Update table: status AND the embedded order ---
     db.get('tables')
       .find({ id: order.tableId })
-      .assign({ status: 'served', order: orderData }) // Update the order
+      .assign({ status: 'served', order: orderData })
       .write();
-    db.get('orders').find({ id: req.params.id }).assign(order).write(); // Important: Also update the actual order!
+    db.get('orders').find({ id: req.params.id }).assign(order).write();
 
     io.emit('order_updated', order);
     io.emit('table_status_updated', { tableId: order.tableId, status: 'served', order: orderData });
@@ -498,7 +547,7 @@ server.patch('/orders/:id', (req, res) => {
       completedAt: new Date().toISOString(),
       cashierId: userId,
       totalPrice: parseFloat(totalPrice.toFixed(2)),
-      paymentMethod: updatedOrder.paymentMethod, // Include paymentMethod
+      paymentMethod: updatedOrder.paymentMethod,
     };
 
     db.get('orderHistory').push(completedOrder).write();
@@ -506,7 +555,7 @@ server.patch('/orders/:id', (req, res) => {
 
     db.get('tables')
       .find({ id: completedOrder.tableId })
-      .assign({ status: 'completed', order: null }) // Set order to null
+      .assign({ status: 'completed', order: null })
       .write();
     updateStatistics(db, completedOrder);
     performMonthlyRollover();
@@ -516,7 +565,7 @@ server.patch('/orders/:id', (req, res) => {
       tableId: completedOrder.tableId,
       status: 'completed',
       order: null,
-    }); // order: null
+    });
 
     return res.json(completedOrder);
   } else {
@@ -524,7 +573,6 @@ server.patch('/orders/:id', (req, res) => {
   }
 });
 
-// --- Merge Orders ---
 server.post('/orders/merge-request', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -533,7 +581,7 @@ server.post('/orders/merge-request', (req, res) => {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { sourceTableId, targetTableId, splitItemIds } = req.body; // Include splitItemIds
+  const { sourceTableId, targetTableId, splitItemIds } = req.body;
 
   if (!sourceTableId || !targetTableId || !splitItemIds) {
     return res.status(400).json({
@@ -564,7 +612,7 @@ server.post('/orders/merge-request', (req, res) => {
     id: faker.database.mongodbObjectId(),
     sourceTableId,
     targetTableId,
-    splitItemIds, // Store the selected item IDs
+    splitItemIds,
     status: 'pending',
     requestedBy: userId,
     requestedAt: new Date().toISOString(),
@@ -576,15 +624,13 @@ server.post('/orders/merge-request', (req, res) => {
   db.get('tables')
     .find({ id: targetTableId })
     .assign({ mergedTable: currentMergedTableCount + 1 })
-    .write(); // Only increment mergedTable
+    .write();
 
   io.emit('merge_request_created', mergeRequest);
-  // No table_status_updated for target table
 
   res.status(201).json(mergeRequest);
 });
 
-// Endpoint for approving a merge (Cashier)
 server.post('/orders/merge-approve', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -609,26 +655,21 @@ server.post('/orders/merge-approve', (req, res) => {
     return res.status(400).json({ message: 'Merge request is not pending.' });
   }
 
-  // Find orders
   const sourceOrder = db.get('orders').find({ tableId: mergeRequest.sourceTableId }).value();
-  let targetOrder = db.get('orders').find({ tableId: mergeRequest.targetTableId }).value(); // Make targetOrder mutable
+  let targetOrder = db.get('orders').find({ tableId: mergeRequest.targetTableId }).value();
   const sourceTable = db.get('tables').find({ id: mergeRequest.sourceTableId }).value();
   const targetTable = db.get('tables').find({ id: mergeRequest.targetTableId }).value();
 
   if (sourceOrder) {
-    // Only proceed if sourceOrder exists
-    // Filter out the items to be moved
     const itemsToMove = sourceOrder.orderItems.filter((item) =>
       mergeRequest.splitItemIds.includes(item.id),
     );
 
-    // Remove items from the source order
     sourceOrder.orderItems = sourceOrder.orderItems.filter(
       (item) => !mergeRequest.splitItemIds.includes(item.id),
     );
 
     if (targetOrder) {
-      // Add the items to the target order with updated orderId
       targetOrder.orderItems = [
         ...targetOrder.orderItems,
         ...itemsToMove.map((item) => ({
@@ -638,7 +679,6 @@ server.post('/orders/merge-approve', (req, res) => {
         })),
       ];
     } else {
-      //If target not have any order
       targetOrder = {
         id: faker.database.mongodbObjectId(),
         tableId: mergeRequest.targetTableId,
@@ -655,22 +695,16 @@ server.post('/orders/merge-approve', (req, res) => {
       };
       db.get('orders').push(targetOrder).write();
 
-      // Update table status and totalPrice
-      db.get('tables')
-        .find({ id: targetOrder.tableId })
-        .assign({ status: 'pending' }) // Assign the order
-        .write();
+      db.get('tables').find({ id: targetOrder.tableId }).assign({ status: 'pending' }).write();
     }
 
-    // Save changes to both orders
     db.get('orders').find({ id: sourceOrder.id }).assign(sourceOrder).write();
     db.get('orders').find({ id: targetOrder.id }).assign(targetOrder).write();
 
-    io.emit('order_updated', sourceOrder); // Emit for both
+    io.emit('order_updated', sourceOrder);
     io.emit('order_updated', targetOrder);
   }
 
-  // --- Calculate total price ---
   let sourceTotalPrice = 0;
   sourceOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -687,11 +721,10 @@ server.post('/orders/merge-approve', (req, res) => {
       quantity: item.quantity,
     })),
     totalPrice: parseFloat(sourceTotalPrice.toFixed(2)),
-    servedBy: sourceOrder.servedBy, // Include
+    servedBy: sourceOrder.servedBy,
     servedAt: sourceOrder.servedAt,
   };
 
-  // --- Calculate total price ---
   let targetTotalPrice = 0;
   targetOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -708,39 +741,35 @@ server.post('/orders/merge-approve', (req, res) => {
       quantity: item.quantity,
     })),
     totalPrice: parseFloat(targetTotalPrice.toFixed(2)),
-    servedBy: targetOrder.servedBy, // Include
+    servedBy: targetOrder.servedBy,
     servedAt: targetOrder.servedAt,
   };
 
-  //Decrese merge table
   db.get('tables')
     .find({ id: mergeRequest.targetTableId })
     .assign({ mergedTable: targetTable.mergedTable > 1 ? targetTable.mergedTable - 1 : 1 })
     .write();
-  // Remove merge request
   db.get('mergeRequests').remove({ id: mergeRequestId }).write();
 
-  // Update table status, if source order item = 0, set to complete
   if (sourceOrder && sourceOrder.orderItems.length === 0) {
-    //No have any order item, should move it to history
     db.get('orderHistory')
       .push({
-        ...sourceOrder, // Copy existing order data
+        ...sourceOrder,
         completedAt: new Date().toISOString(),
         cashierId: userId,
         totalPrice: sourceTotalPrice,
-        paymentMethod: null, // Since it's a merge, payment method not apply direct
+        paymentMethod: null,
       })
       .write();
-    db.get('orders').remove({ id: sourceOrder.id }).write(); //remove it
+    db.get('orders').remove({ id: sourceOrder.id }).write();
     db.get('tables')
       .find({ id: mergeRequest.sourceTableId })
-      .assign({ status: 'completed', order: null }) //Set null for order
+      .assign({ status: 'completed', order: null })
       .write();
     io.emit('table_status_updated', {
       tableId: mergeRequest.sourceTableId,
       status: 'completed',
-      order: null, // Send null since the order is removed
+      order: null,
     });
   } else {
     db.get('tables')
@@ -749,11 +778,10 @@ server.post('/orders/merge-approve', (req, res) => {
       .write();
   }
 
-  //If source table status is served, target should served
   if (sourceTable.status == 'served') {
     db.get('tables')
       .find({ id: mergeRequest.targetTableId })
-      .assign({ status: 'served', order: targetOrderData }) // Update the order
+      .assign({ status: 'served', order: targetOrderData })
       .write();
     io.emit('table_status_updated', {
       tableId: mergeRequest.targetTableId,
@@ -773,7 +801,6 @@ server.post('/orders/merge-approve', (req, res) => {
   res.status(200).json({ message: 'Orders merged successfully.' });
 });
 
-// --- Split Order ---
 server.post('/orders/split', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -825,8 +852,8 @@ server.post('/orders/split', (req, res) => {
     };
     db.get('orders').push(targetOrder).write();
 
-    db.get('tables').find({ id: targetTableId }).assign({ status: 'pending' }).write(); //Set pending
-    io.emit('table_status_updated', { tableId: targetTableId, status: 'pending' }); //new table is pending
+    db.get('tables').find({ id: targetTableId }).assign({ status: 'pending' }).write();
+    io.emit('table_status_updated', { tableId: targetTableId, status: 'pending' });
   }
 
   const itemsToMove = sourceOrder.orderItems.filter((item) => splitItemIds.includes(item.id));
@@ -845,7 +872,6 @@ server.post('/orders/split', (req, res) => {
   db.get('orders').find({ id: sourceOrder.id }).assign(sourceOrder).write();
   db.get('orders').find({ id: targetOrder.id }).assign(targetOrder).write();
 
-  // --- Calculate total price ---
   let sourceTotalPrice = 0;
   sourceOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -862,11 +888,10 @@ server.post('/orders/split', (req, res) => {
       quantity: item.quantity,
     })),
     totalPrice: parseFloat(sourceTotalPrice.toFixed(2)),
-    servedBy: sourceOrder.servedBy, // Include
+    servedBy: sourceOrder.servedBy,
     servedAt: sourceOrder.servedAt,
   };
 
-  // --- Calculate total price ---
   let targetTotalPrice = 0;
   targetOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -883,42 +908,39 @@ server.post('/orders/split', (req, res) => {
       quantity: item.quantity,
     })),
     totalPrice: parseFloat(targetTotalPrice.toFixed(2)),
-    servedBy: targetOrder.servedBy, // Include
+    servedBy: targetOrder.servedBy,
     servedAt: targetOrder.servedAt,
   };
 
-  db.get('tables').find({ id: sourceTableId }).assign({ order: sourceOrderData }).write(); //Update source
-  db.get('tables').find({ id: targetTableId }).assign({ order: targetOrderData }).write(); // Update target
+  db.get('tables').find({ id: sourceTableId }).assign({ order: sourceOrderData }).write();
+  db.get('tables').find({ id: targetTableId }).assign({ order: targetOrderData }).write();
 
   io.emit('order_updated', sourceOrder);
   io.emit('order_updated', targetOrder);
   io.emit('order_splitted', {
-    // new event for split
     sourceTableId,
     targetTableId,
   });
 
-  //If source after split no order item, it should move to history, set status to complete
   if (sourceOrder.orderItems.length === 0) {
-    //No have any order item, should move it to history
     db.get('orderHistory')
       .push({
-        ...sourceOrder, // Copy existing order data
+        ...sourceOrder,
         completedAt: new Date().toISOString(),
-        cashierId: userId, // Could be null if not applicable
+        cashierId: userId,
         totalPrice: sourceTotalPrice,
-        paymentMethod: null, //Payment method not apply direct
+        paymentMethod: null,
       })
       .write();
-    db.get('orders').remove({ id: sourceOrder.id }).write(); //remove it
+    db.get('orders').remove({ id: sourceOrder.id }).write();
     db.get('tables')
-      .find({ id: sourceOrder.tableId }) // Corrected: Use sourceTableId
-      .assign({ status: 'completed', order: null }) //remove order
+      .find({ id: sourceOrder.tableId })
+      .assign({ status: 'completed', order: null })
       .write();
     io.emit('table_status_updated', {
-      tableId: sourceOrder.tableId, // Corrected: Use sourceTableId
+      tableId: sourceOrder.tableId,
       status: 'completed',
-      order: null, //set order to null
+      order: null,
     });
   }
 
@@ -929,11 +951,46 @@ server.post('/orders/split', (req, res) => {
   });
 });
 
+server.post('/orders/merge-reject', (req, res) => {
+  const db = router.db;
+  const userId = req.headers.userid;
+
+  if (!hasRole(req, ['cashier', 'admin'])) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const { mergeRequestId } = req.body;
+
+  if (!mergeRequestId) {
+    return res.status(400).json({ message: 'mergeRequestId is required.' });
+  }
+
+  const mergeRequest = db.get('mergeRequests').find({ id: mergeRequestId }).value();
+
+  if (!mergeRequest) {
+    return res.status(404).json({ message: 'Merge request not found.' });
+  }
+
+  if (mergeRequest.status !== 'pending') {
+    return res.status(400).json({ message: 'Merge request is not pending.' });
+  }
+  const targetTable = db.get('tables').find({ id: mergeRequest.targetTableId }).value();
+  db.get('tables')
+    .find({ id: mergeRequest.targetTableId })
+    .assign({ mergedTable: targetTable.mergedTable > 1 ? targetTable.mergedTable - 1 : 1 })
+    .write();
+
+  db.get('mergeRequests').remove({ id: mergeRequestId }).write();
+  io.emit('merge_request_rejected', { mergeRequestId });
+
+  res.status(200).json({ message: 'Merge request rejected.' });
+});
+
 server.post('/feedback', (req, res) => {
   const db = router.db;
   const newFeedback = {
     ...req.body,
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     timestamp: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -942,23 +999,45 @@ server.post('/feedback', (req, res) => {
   res.status(201).json(newFeedback);
 });
 
-server.get('/statistics', (req, res) => {
-  const db = router.db;
-  const currentMonth = moment().format('YYYY-MM');
-  const stats = db
-    .get('statistics')
-    .filter((stat) => moment(stat.date).format('YYYY-MM') === currentMonth)
-    .value();
-  res.json(stats);
-});
-
 server.get('/statistics/today', (req, res) => {
   const db = router.db;
   const today = moment().format('YYYY-MM-DD');
-  const stats = db.get('statistics').find({ date: today }).value();
+  let stats = db.get('statistics').find({ date: today }).value();
   if (!stats) {
-    return res.status(404).json({ message: 'Statistics not found for today.' });
+    stats = {
+      id: `stats-${today}`,
+      date: today,
+      totalOrders: 0,
+      totalRevenue: 0,
+      paymentMethodSummary: {},
+      ordersByHour: {},
+      averageRating: 0,
+      totalComments: 0,
+      soldItems: {},
+    };
   }
+
+  const paymentSummary = {};
+  for (const paymentId in stats.paymentMethodSummary) {
+    if (stats.paymentMethodSummary.hasOwnProperty(paymentId)) {
+      const payment = db.get('payments').find({ id: paymentId }).value();
+      if (payment) {
+        paymentSummary[payment.name] = {
+          name: payment.name,
+          count: stats.paymentMethodSummary[paymentId].count,
+          totalAmount: stats.paymentMethodSummary[paymentId].totalAmount,
+        };
+      } else {
+        paymentSummary[paymentId] = {
+          name: paymentId,
+          count: stats.paymentMethodSummary[paymentId].count,
+          totalAmount: stats.paymentMethodSummary[paymentId].totalAmount,
+        };
+      }
+    }
+  }
+  stats = { ...stats, paymentMethodSummary: paymentSummary };
+
   res.json(stats);
 });
 
@@ -966,123 +1045,497 @@ server.get('/statistics/this-week', (req, res) => {
   const db = router.db;
   const today = moment();
   const weekStats = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 6; i++) {
     const date = today.clone().subtract(i, 'days').format('YYYY-MM-DD');
-    const stats = db.get('statistics').find({ date: date }).value();
+    let stats = db.get('statistics').find({ date: date }).value();
     if (stats) {
+      const paymentSummary = {};
+      for (const paymentId in stats.paymentMethodSummary) {
+        if (stats.paymentMethodSummary.hasOwnProperty(paymentId)) {
+          const payment = db.get('payments').find({ id: paymentId }).value();
+          if (payment) {
+            paymentSummary[payment.name] = {
+              name: payment.name,
+              count: stats.paymentMethodSummary[paymentId].count,
+              totalAmount: stats.paymentMethodSummary[paymentId].totalAmount,
+            };
+          } else {
+            paymentSummary[paymentId] = {
+              name: paymentId,
+              count: stats.paymentMethodSummary[paymentId].count,
+              totalAmount: stats.paymentMethodSummary[paymentId].totalAmount,
+            };
+          }
+        }
+      }
+      stats = { ...stats, paymentMethodSummary: paymentSummary };
       weekStats.push(stats);
     }
   }
-  res.json(weekStats);
+  res.json(weekStats.reverse());
 });
 
-server.get('/aggregatedStatistics', (req, res) => {
+server.get('/aggregated-statistics', (req, res) => {
   const db = router.db;
-  const monthlyStats = db.get('aggregatedStatistics').value();
+  let monthlyStats = db.get('aggregatedStatistics').value();
   if (!monthlyStats || !Array.isArray(monthlyStats)) {
     return res.json([]);
   }
-  res.json(monthlyStats);
-});
 
-// --- index.js continued ---
-server.get('/statisticsYears', (req, res) => {
-  const db = router.db;
-  const monthlyStats = db.get('aggregatedStatistics').value();
-  if (!monthlyStats || monthlyStats.length === 0) {
-    return res.json([]); // Return an empty array for consistency
-  }
-  const yearlyData = {};
-
-  monthlyStats.forEach((month) => {
-    if (month.month != null) {
-      const year = month.year.toString();
-      if (!yearlyData[year]) {
-        yearlyData[year] = {
-          id: year,
-          year: parseInt(year),
-          month: null, // To match AggregatedStatisticsModel structure
-          totalOrders: 0,
-          totalRevenue: 0,
-          paymentMethodSummary: {},
-          averageRating: [], // Store as an array to calculate later
-          totalComments: 0,
-          bestSellingItems: {},
-        };
-      }
-      yearlyData[year].totalOrders += month.totalOrders;
-      yearlyData[year].totalRevenue += month.totalRevenue;
-      yearlyData[year].totalComments += month.totalComments;
-      // Aggregate payment methods
-      for (const method in month.paymentMethodSummary) {
-        yearlyData[year].paymentMethodSummary[method] =
-          (yearlyData[year].paymentMethodSummary[method] || 0) + month.paymentMethodSummary[method];
-      }
-
-      // Aggregate best selling items
-      for (const item in month.bestSellingItems) {
-        yearlyData[year].bestSellingItems[item] =
-          (yearlyData[year].bestSellingItems[item] || 0) + month.bestSellingItems[item];
-      }
-      // Push to an array to calculate
-      if (month.averageRating > 0) {
-        yearlyData[year].averageRating.push(month.averageRating);
+  const statsWithPaymentNames = monthlyStats.map((stat) => {
+    const paymentSummary = {};
+    for (const paymentId in stat.paymentMethodSummary) {
+      if (stat.paymentMethodSummary.hasOwnProperty(paymentId)) {
+        const payment = db.get('payments').find({ id: paymentId }).value();
+        if (payment) {
+          paymentSummary[payment.name] = {
+            name: payment.name,
+            count: stat.paymentMethodSummary[paymentId].count,
+            totalAmount: stat.paymentMethodSummary[paymentId].totalAmount,
+          };
+        } else {
+          paymentSummary[paymentId] = {
+            name: paymentId,
+            count: stat.paymentMethodSummary[paymentId].count,
+            totalAmount: stat.paymentMethodSummary[paymentId].totalAmount,
+          };
+        }
       }
     }
+    return {
+      ...stat,
+      paymentMethodSummary: paymentSummary,
+    };
   });
 
-  // Calculate the average rating for each year.
-  for (const year in yearlyData) {
-    if (yearlyData[year].averageRating.length > 0) {
-      const sum = yearlyData[year].averageRating.reduce((a, b) => a + b, 0);
-      yearlyData[year].averageRating = parseFloat(
-        (sum / yearlyData[year].averageRating.length).toFixed(1),
-      );
-    } else {
-      yearlyData[year].averageRating = 0; // Default to 0 if no ratings
-    }
+  res.json(statsWithPaymentNames);
+});
+
+server.post('/categories', (req, res) => {
+  const db = router.db;
+  const newCategory = {
+    ...req.body,
+    id: faker.string.uuid(),
+    isActive: req.body.isActive === undefined ? true : req.body.isActive,
+  };
+  const existingCategory = db.get('categories').find({ name: newCategory.name }).value();
+  if (existingCategory) {
+    return res.status(400).json({ message: 'Category name must be unique.' });
   }
 
-  const yearlyArray = Object.values(yearlyData);
-  res.json(yearlyArray);
+  db.get('categories').push(newCategory).write();
+  res.status(201).json(newCategory);
+});
+
+server.patch('/categories/:id', (req, res) => {
+  const db = router.db;
+  const category = db.get('categories').find({ id: req.params.id }).value();
+  if (!category) {
+    return res.status(404).json({ message: 'Category not found' });
+  }
+
+  const updatedCategory = {
+    ...category,
+    ...req.body,
+    id: category.id,
+  };
+
+  const existingCategory = db.get('categories').find({ name: updatedCategory.name }).value();
+  if (existingCategory && existingCategory.id !== req.params.id) {
+    return res.status(400).json({ message: 'Category name must be unique.' });
+  }
+
+  db.get('categories').find({ id: req.params.id }).assign(updatedCategory).write();
+  res.json(updatedCategory);
+});
+server.get('/categories', (req, res) => {
+  const db = router.db;
+  const isActiveFilter = req.query.isActive;
+  if (isActiveFilter !== undefined) {
+    const isActive = isActiveFilter === 'true';
+    const categories = db.get('categories').filter({ isActive }).value();
+    res.json(categories);
+  } else {
+    const categories = db.get('categories').value();
+    res.json(categories);
+  }
+});
+
+server.post('/subCategories', (req, res) => {
+  const db = router.db;
+  const newSubCategory = {
+    ...req.body,
+    id: faker.string.uuid(),
+    isActive: req.body.isActive === undefined ? true : req.body.isActive,
+  };
+  const existingSubCategory = db.get('subCategories').find({ name: newSubCategory.name }).value();
+  if (existingSubCategory) {
+    return res.status(400).json({ message: 'SubCategory name must be unique.' });
+  }
+  db.get('subCategories').push(newSubCategory).write();
+  res.status(201).json(newSubCategory);
+});
+
+server.patch('/subCategories/:id', (req, res) => {
+  const db = router.db;
+  const subCategory = db.get('subCategories').find({ id: req.params.id }).value();
+  if (!subCategory) {
+    return res.status(404).json({ message: 'SubCategory not found' });
+  }
+  const updatedSubCategory = {
+    ...subCategory,
+    ...req.body,
+    id: subCategory.id,
+  };
+  const existingSubCategory = db
+    .get('subCategories')
+    .find({ name: updatedSubCategory.name })
+    .value();
+  if (existingSubCategory && existingSubCategory.id !== req.params.id) {
+    return res.status(400).json({ message: 'SubCategory name must be unique.' });
+  }
+  db.get('subCategories').find({ id: req.params.id }).assign(updatedSubCategory).write();
+  res.json(updatedSubCategory);
+});
+
+server.get('/subCategories', (req, res) => {
+  const db = router.db;
+  const isActiveFilter = req.query.isActive;
+  if (isActiveFilter !== undefined) {
+    const isActive = isActiveFilter === 'true';
+    const subCategories = db.get('subCategories').filter({ isActive }).value();
+    res.json(subCategories);
+  } else {
+    const subCategories = db.get('subCategories').value();
+    res.json(subCategories);
+  }
+});
+
+server.post('/menuItems', (req, res) => {
+  const db = router.db;
+  const newMenuItem = {
+    ...req.body,
+    id: faker.string.uuid(),
+    isActive: req.body.isActive === undefined ? true : req.body.isActive,
+  };
+  const existingMenuItem = db.get('menuItems').find({ name: newMenuItem.name }).value();
+  if (existingMenuItem) {
+    return res.status(400).json({ message: 'MenuItem name must be unique.' });
+  }
+  db.get('menuItems').push(newMenuItem).write();
+  res.status(201).json(newMenuItem);
+});
+
+server.patch('/menuItems/:id', (req, res) => {
+  const db = router.db;
+  const menuItem = db.get('menuItems').find({ id: req.params.id }).value();
+  if (!menuItem) {
+    return res.status(404).json({ message: 'MenuItem not found' });
+  }
+  const updatedMenuItem = {
+    ...menuItem,
+    ...req.body,
+    id: menuItem.id,
+  };
+  const existingMenuItem = db.get('menuItems').find({ name: updatedMenuItem.name }).value();
+  if (existingMenuItem && existingMenuItem.id !== req.params.id) {
+    return res.status(400).json({ message: 'MenuItem name must be unique.' });
+  }
+  db.get('menuItems').find({ id: req.params.id }).assign(updatedMenuItem).write();
+  res.json(updatedMenuItem);
+});
+server.get('/menuItems', (req, res) => {
+  const db = router.db;
+  const isActiveFilter = req.query.isActive;
+  if (isActiveFilter !== undefined) {
+    const isActive = isActiveFilter === 'true';
+    const menuItems = db.get('menuItems').filter({ isActive }).value();
+    res.json(menuItems);
+  } else {
+    const menuItems = db.get('menuItems').value();
+    res.json(menuItems);
+  }
+});
+
+server.post('/areas', (req, res) => {
+  const db = router.db;
+  const newArea = {
+    ...req.body,
+    id: faker.string.uuid(),
+    tables: [],
+  };
+
+  const existingArea = db.get('areas').find({ name: newArea.name }).value();
+  if (existingArea) {
+    return res.status(400).json({ message: 'Area name must be unique.' });
+  }
+
+  db.get('areas').push(newArea).write();
+  res.status(201).json(newArea);
+});
+
+server.patch('/areas/:id', (req, res) => {
+  const db = router.db;
+  const area = db.get('areas').find({ id: req.params.id }).value();
+  if (!area) {
+    return res.status(404).json({ message: 'Area not found' });
+  }
+
+  const updatedArea = {
+    ...area,
+    ...req.body,
+    id: area.id,
+  };
+  const existingArea = db.get('areas').find({ name: updatedArea.name }).value();
+  if (existingArea && existingArea.id !== req.params.id) {
+    return res.status(400).json({ message: 'Area name must be unique.' });
+  }
+
+  db.get('areas').find({ id: req.params.id }).assign(updatedArea).write();
+  res.json(updatedArea);
+});
+
+server.post('/tables', (req, res) => {
+  const db = router.db;
+  const newTable = {
+    ...req.body,
+    id: faker.string.uuid(),
+  };
+  const existingTable = db.get('tables').find({ name: newTable.name }).value();
+  if (existingTable) {
+    return res.status(400).json({ message: 'Table name must be unique.' });
+  }
+  db.get('tables').push(newTable).write();
+  res.status(201).json(newTable);
+});
+
+server.patch('/tables/:id', (req, res) => {
+  const db = router.db;
+  const table = db.get('tables').find({ id: req.params.id }).value();
+  if (!table) {
+    return res.status(404).json({ message: 'Table not found' });
+  }
+
+  const updatedTable = {
+    ...table,
+    ...req.body,
+    id: table.id,
+  };
+  const existingTable = db.get('tables').find({ name: updatedTable.name }).value();
+  if (existingTable && existingTable.id !== req.params.id) {
+    return res.status(400).json({ message: 'Table name must be unique.' });
+  }
+  db.get('tables').find({ id: req.params.id }).assign(updatedTable).write();
+  res.json(updatedTable);
+});
+
+server.post('/payments', (req, res) => {
+  if (!isAdmin(req)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const db = router.db;
+  const newPayment = {
+    ...req.body,
+    id: faker.database.mongodbObjectId(),
+    isActive: req.body.isActive === undefined ? true : req.body.isActive,
+  };
+
+  const existingPayment = db.get('payments').find({ name: newPayment.name }).value();
+  if (existingPayment) {
+    return res.status(400).json({ message: 'Payment name must be unique.' });
+  }
+
+  db.get('payments').push(newPayment).write();
+  res.status(201).json(newPayment);
+});
+
+server.get('/payments', (req, res) => {
+  const db = router.db;
+  const isActiveFilter = req.query.isActive;
+  if (isActiveFilter !== undefined) {
+    const isActive = isActiveFilter === 'true';
+    const payments = db.get('payments').filter({ isActive }).value();
+    res.json(payments);
+  } else {
+    const payments = db.get('payments').value();
+    res.json(payments);
+  }
+});
+
+server.patch('/payments/:id', (req, res) => {
+  if (!isAdmin(req)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const db = router.db;
+  const payment = db.get('payments').find({ id: req.params.id }).value();
+  if (!payment) {
+    return res.status(404).json({ message: 'Payment method not found' });
+  }
+  const updatedPayment = {
+    ...payment,
+    ...req.body,
+    id: payment.id,
+  };
+
+  const existingPayment = db.get('payments').find({ name: updatedPayment.name }).value();
+  if (existingPayment && existingPayment.id !== req.params.id) {
+    return res.status(400).json({ message: 'Payment name must be unique.' });
+  }
+
+  db.get('payments').find({ id: req.params.id }).assign(updatedPayment).write();
+  res.json(updatedPayment);
+});
+
+server.delete('/payments/:id', (req, res) => {
+  if (!isAdmin(req)) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const db = router.db;
+  const payment = db.get('payments').find({ id: req.params.id }).value();
+  if (!payment) {
+    return res.status(404).json({ message: 'Payment method not found' });
+  }
+  db.get('statistics')
+    .value()
+    .forEach((statistic) => {
+      if (statistic.paymentMethodSummary && statistic.paymentMethodSummary[req.params.id]) {
+        delete statistic.paymentMethodSummary[req.params.id];
+        db.get('statistics').find({ id: statistic.id }).assign(statistic).write();
+      }
+    });
+
+  db.get('aggregatedStatistics')
+    .value()
+    .forEach((aggregatedStatistic) => {
+      if (
+        aggregatedStatistic.paymentMethodSummary &&
+        aggregatedStatistic.paymentMethodSummary[req.params.id]
+      ) {
+        delete aggregatedStatistic.paymentMethodSummary[req.params.id];
+        db.get('aggregatedStatistics')
+          .find({ id: aggregatedStatistic.id })
+          .assign(aggregatedStatistic)
+          .write();
+      }
+    });
+
+  db.get('payments').remove({ id: req.params.id }).write();
+  res.status(204).send();
+});
+
+server.get('/feedback', (req, res) => {
+  const db = router.db;
+  let { rating, startDate, endDate, page, limit } = req.query;
+
+  const pageNum = parseInt(page) || 1; // Default to page 1
+  const perPage = parseInt(limit) || 40; // Default limit
+  const startIndex = (pageNum - 1) * perPage;
+
+  rating = rating ? parseInt(rating) : null;
+  startDate = startDate ? moment(startDate) : null;
+  endDate = endDate ? moment(endDate) : null;
+
+  let feedback = db.get('feedback');
+
+  if (rating) {
+    feedback = feedback.filter({ rating });
+  }
+  if (startDate) {
+    feedback = feedback.filter((item) => moment(item.timestamp).isSameOrAfter(startDate));
+  }
+  if (endDate) {
+    endDate = endDate.add(1, 'days');
+    feedback = feedback.filter((item) => moment(item.timestamp).isSameOrBefore(endDate));
+  }
+
+  feedback = feedback.sortBy('timestamp').value(); // Correct sorting
+  feedback.reverse(); // Descending order
+
+  const totalItems = feedback.length;
+  const hasMore = startIndex + perPage < totalItems;
+  const paginated = feedback.slice(startIndex, startIndex + perPage);
+
+  res.json({ data: paginated, hasMore: hasMore, page: pageNum });
 });
 
 server.get('/orderHistory', (req, res) => {
   const db = router.db;
-  const orderHistory = db.get('orderHistory').value();
+  let { paymentMethod, startDate, endDate, page, limit } = req.query;
 
-  const historyWithItems = orderHistory.map((order) => {
-    // --- Expand orderItems to include menuItem details ---
+  const pageNum = parseInt(page) || 1;
+  const perPage = parseInt(limit) || 40;
+  const startIndex = (pageNum - 1) * perPage;
+
+  startDate = startDate ? moment(startDate) : null;
+  endDate = endDate ? moment(endDate) : null;
+
+  let orderHistory = db.get('orderHistory');
+
+  // Filtering (as before)
+  if (paymentMethod) {
+    orderHistory = orderHistory.filter({ paymentMethod });
+  }
+  if (startDate) {
+    orderHistory = orderHistory.filter((item) => moment(item.createdAt).isSameOrAfter(startDate));
+  }
+  if (endDate) {
+    orderHistory = orderHistory.filter((item) => moment(item.createdAt).isSameOrBefore(endDate));
+  }
+
+  // Sorting (as before)
+  orderHistory = orderHistory.sortBy('completedAt').value();
+  orderHistory.reverse(); // Descending (newest first)
+
+  // Pagination (now using slice with page and limit)
+  const totalItems = orderHistory.length;
+  const hasMore = startIndex + perPage < totalItems;
+  const paginatedOrders = orderHistory.slice(startIndex, startIndex + perPage);
+
+  // Expand related data (same as before, but cleaner)
+  const historyWithItems = paginatedOrders.map((order) => {
     const expandedOrderItems = order.orderItems.map((item) => {
-      const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
-      if (!menuItem) {
-        return { ...item }; // Return original item if menu item is missing
-      }
-      return {
-        ...item,
-        menuItem: menuItem, // Add the full menuItem object
-      };
+      const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value() || { ...item };
+      return { ...item, menuItem };
     });
 
-    // --- Get table information ---
     const table = db.get('tables').find({ id: order.tableId }).value();
-    const tableInfo = table
-      ? { id: table.id, tableName: table.tableName, areaId: table.areaId }
-      : null;
+    const tableName = table ? table.name : null;
+
+    const cashier = db.get('users').find({ id: order.cashierId }).value();
+    const cashierName = cashier ? cashier.username : null;
+
+    const payment = db.get('payments').find({ name: order.paymentMethod }).value(); //or find id
+    const paymentInfo = payment
+      ? { id: payment.id, name: payment.name }
+      : { id: null, name: order.paymentMethod };
 
     return {
       ...order,
-      orderItems: expandedOrderItems, // Use the expanded order items
-      table: tableInfo, //Add table info
+      orderItems: expandedOrderItems,
+      tableName: tableName,
+      cashierName: cashierName,
+      paymentMethod: paymentInfo.name,
     };
   });
 
-  res.json(historyWithItems);
+  res.json({ data: historyWithItems, hasMore: hasMore, page: pageNum });
 });
-// --- Default Routes (CRUD) ---
+
+server.get('/menu', (req, res) => {
+  const db = router.db;
+  const categories = db.get('categories').value();
+  const subCategories = db.get('subCategories').value();
+  const menuItems = db.get('menuItems').value();
+
+  return res.json({
+    categories,
+    subCategories,
+    menuItems,
+  });
+});
+
 server.use(router);
 
-// Start the HTTP server (which includes Socket.IO)
 const PORT = 3000;
 httpServer.listen(PORT, () => {
   console.log(`JSON Server with Socket.IO is running on port ${PORT}`);

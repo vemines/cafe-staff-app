@@ -1,26 +1,28 @@
 import 'package:equatable/equatable.dart';
 
+import 'payment_statistic_entity.dart';
+
 class AggregatedStatisticsEntity extends Equatable {
   final String id;
   final int year;
-  final int? month;
+  final int month;
   final int totalOrders;
   final double totalRevenue;
-  final Map<String, int> paymentMethodSummary;
+  final Map<String, PaymentStatisticEntity> paymentMethodSummary;
   final double averageRating;
-  final int totalComments;
-  final Map<String, int> bestSellingItems;
+  final int totalFeedbacks;
+  final Map<String, int> soldItems;
 
   const AggregatedStatisticsEntity({
     required this.id,
     required this.year,
-    this.month,
+    required this.month,
     required this.totalOrders,
     required this.totalRevenue,
     required this.paymentMethodSummary,
     required this.averageRating,
-    required this.totalComments,
-    required this.bestSellingItems,
+    required this.totalFeedbacks,
+    required this.soldItems,
   });
 
   @override
@@ -32,8 +34,8 @@ class AggregatedStatisticsEntity extends Equatable {
     totalRevenue,
     paymentMethodSummary,
     averageRating,
-    totalComments,
-    bestSellingItems,
+    totalFeedbacks,
+    soldItems,
   ];
 
   AggregatedStatisticsEntity copyWith({
@@ -42,10 +44,10 @@ class AggregatedStatisticsEntity extends Equatable {
     int? month,
     int? totalOrders,
     double? totalRevenue,
-    Map<String, int>? paymentMethodSummary,
+    Map<String, PaymentStatisticEntity>? paymentMethodSummary,
     double? averageRating,
-    int? totalComments,
-    Map<String, int>? bestSellingItems,
+    int? totalFeedbacks,
+    Map<String, int>? soldItems,
   }) {
     return AggregatedStatisticsEntity(
       id: id ?? this.id,
@@ -55,8 +57,8 @@ class AggregatedStatisticsEntity extends Equatable {
       totalRevenue: totalRevenue ?? this.totalRevenue,
       paymentMethodSummary: paymentMethodSummary ?? this.paymentMethodSummary,
       averageRating: averageRating ?? this.averageRating,
-      totalComments: totalComments ?? this.totalComments,
-      bestSellingItems: bestSellingItems ?? this.bestSellingItems,
+      totalFeedbacks: totalFeedbacks ?? this.totalFeedbacks,
+      soldItems: soldItems ?? this.soldItems,
     );
   }
 }

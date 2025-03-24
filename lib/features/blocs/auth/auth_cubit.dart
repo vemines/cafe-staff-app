@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/errors/failures.dart';
-import '../../../core/usecase/params.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/params.dart';
 import '../../entities/user_entity.dart';
 import '../../usecases/auth/get_logged_user_usecase.dart';
 import '../../usecases/auth/login_usecase.dart';
@@ -21,9 +21,8 @@ class AuthCubit extends Cubit<AuthState> {
     required this.getLoggedUserUseCase,
   }) : super(AuthInitial());
 
-  Future<void> login(LoginParams params) async {
-    emit(AuthLoading());
-    final result = await loginUseCase(params);
+  Future<void> login({required String username, required String password}) async {
+    final result = await loginUseCase(LoginParams(username: username, password: password));
     result.fold(
       (failure) {
         emit(AuthError(failure: failure));

@@ -1,15 +1,14 @@
-import '../entities/order_entity.dart';
+import '/core/constants/api_map.dart';
 import '/core/constants/enum.dart';
-
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/utils/parse_utils.dart';
+import '../entities/order_entity.dart';
 import '../entities/table_entity.dart';
 import 'order_model.dart';
 
 class TableModel extends TableEntity {
   const TableModel({
     required super.id,
-    required super.tableName,
+    required super.name,
     required super.status,
     required super.areaId,
     required super.mergedTable,
@@ -19,7 +18,7 @@ class TableModel extends TableEntity {
   factory TableModel.fromJson(Map<String, dynamic> json) {
     return TableModel(
       id: json[TableApiMap.id] as String,
-      tableName: json[TableApiMap.tableName] as String,
+      name: json[TableApiMap.name] as String,
       status: json[TableApiMap.status].toString().toTableStatus(),
       areaId: json[TableApiMap.areaId] as String,
       mergedTable: intParse(json[TableApiMap.mergedTable], fallbackValue: 1),
@@ -30,7 +29,7 @@ class TableModel extends TableEntity {
   factory TableModel.fromEntity(TableEntity entity) {
     return TableModel(
       id: entity.id,
-      tableName: entity.tableName,
+      name: entity.name,
       status: entity.status,
       areaId: entity.areaId,
       mergedTable: entity.mergedTable,
@@ -41,7 +40,7 @@ class TableModel extends TableEntity {
   @override
   TableModel copyWith({
     String? id,
-    String? tableName,
+    String? name,
     TableStatus? status,
     String? areaId,
     int? mergedTable,
@@ -49,7 +48,7 @@ class TableModel extends TableEntity {
   }) {
     return TableModel(
       id: id ?? this.id,
-      tableName: tableName ?? this.tableName,
+      name: name ?? this.name,
       status: status ?? this.status,
       areaId: areaId ?? this.areaId,
       mergedTable: mergedTable ?? this.mergedTable,
@@ -60,7 +59,7 @@ class TableModel extends TableEntity {
   Map<String, dynamic> toJson() {
     return {
       TableApiMap.id: id,
-      TableApiMap.tableName: tableName,
+      TableApiMap.name: name,
       TableApiMap.status: status.toString(),
       TableApiMap.areaId: areaId,
       TableApiMap.mergedTable: mergedTable,

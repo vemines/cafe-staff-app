@@ -1,62 +1,264 @@
-// lib/features/pages/staff/order/order_page.dart
-import 'package:cafe_staff_app/core/constants/enum.dart';
-import 'package:cafe_staff_app/core/extensions/build_content_extensions.dart';
-import 'package:cafe_staff_app/core/extensions/num_extension.dart';
-import 'package:cafe_staff_app/core/widgets/widgets.dart';
+import '../../../blocs/menu/complete_menu_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../entities/menu_item_entity.dart';
-import '../../../entities/order_entity.dart';
-import '../../../entities/order_history_entity.dart';
-import '../../../entities/order_item_entity.dart';
-import '../../../entities/sub_category_entity.dart';
-import '../../../entities/table_entity.dart';
-import '../../../entities/user_entity.dart';
-import '../../mock.dart';
-import '../widgets/order_button.dart';
+import '/core/constants/enum.dart';
+import '/core/extensions/build_content_extensions.dart';
+import '/core/extensions/num_extensions.dart';
+import '/core/services/socket_service.dart';
+import '/core/widgets/dialog.dart';
+import '/core/widgets/space.dart';
+import '/features/blocs/order/order_cubit.dart';
+import '/features/entities/menu_item_entity.dart';
+import '/features/entities/order_entity.dart';
+import '/features/entities/order_item_entity.dart';
+import '/features/entities/sub_category_entity.dart';
+import '/features/entities/table_entity.dart';
+import '/injection_container.dart';
+import 'select_table_page.dart';
+import 'widgets/order_button.dart';
+import 'widgets/row_subcategories_button.dart';
 
 class OrderPage extends StatefulWidget {
-  final UserEntity user;
   final TableEntity table;
   final OrderEntity? order;
 
-  const OrderPage({super.key, required this.user, required this.table, this.order});
+  const OrderPage({super.key, required this.table, this.order});
 
   @override
   State<OrderPage> createState() => _OrderPageState();
 }
 
 class _OrderPageState extends State<OrderPage> {
-  late final List<SubCategoryEntity> _subcategories;
-  late final List<MenuItemEntity> _menuItems;
   String? _selectedSubcategoryId;
   late OrderEntity? _order;
-  final List<OrderItemEntity> _currentOrderItems = []; // Existing order items
-  final Map<String, int> _pendingOrderItems = {}; // MenuItem ID -> Quantity
+  final List<OrderItemEntity> _currentOrderItems = [];
+  final Map<String, int> _pendingOrderItems = {};
   late TableEntity _table;
+  late OrderCubit _orderCubit;
+  late CompleteMenuCubit _completeMenuCubit;
+  // late final SocketService _socketService;
 
   @override
   void initState() {
     super.initState();
     _table = widget.table;
     _order = widget.order;
-    _subcategories = MockData.subCategories;
-    _menuItems = MockData.menuItems;
-    _selectedSubcategoryId = _subcategories.first.id;
-
-    if (_order != null) {
-      _currentOrderItems.addAll(_order!.orderItems);
-    }
+    _orderCubit = sl<OrderCubit>();
+    _completeMenuCubit = sl<CompleteMenuCubit>();
+    _completeMenuCubit.getCompleteMenu();
+    // _socketService = sl<SocketService>();
+    _initSocketListeners();
+    if (_order != null) _currentOrderItems.addAll(_order!.orderItems);
   }
 
-  // --- Add Pending Item ---
+  // Add this method
+  void _initSocketListeners() {
+    // _socketService.socket.on('order_updated', (data) => _handleOrderUpdated(data));
+    // _socketService.socket.on('order_created', (data) => _handleOrderUpdated(data));
+  }
+
+  void _handleOrderUpdated(dynamic data) {
+    _completeMenuCubit.getCompleteMenu(); // Refresh to ensure consistency
+  }
+
+  @override
+  void dispose() {
+    _orderCubit.close();
+    _completeMenuCubit.close();
+    // _socketService.socket.off('order_updated');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        title: Text(_table.name),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [_popupMenu()],
+      ),
+      body: SafeArea(
+        child: BlocBuilder<CompleteMenuCubit, CompleteMenuState>(
+          bloc: _completeMenuCubit,
+          builder: (context, menuState) {
+            if (menuState is CompleteMenuLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (menuState is CompleteMenuError) {
+              return Center(child: Text("Error: ${menuState.failure.message}"));
+            } else if (menuState is CompleteMenuLoaded) {
+              final subcategories = menuState.response.subCategories;
+              final menuItems = menuState.response.menuItems;
+              if (_selectedSubcategoryId == null && subcategories.isNotEmpty) {
+                _selectedSubcategoryId = subcategories.first.id;
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _serverMenu(context, subcategories, menuItems)),
+                  const VerticalDivider(width: 2, thickness: 2, color: Colors.grey),
+                  Expanded(flex: 1, child: _serverOrderView(menuState)),
+                ],
+              );
+            }
+            return const Center(child: Text("No data"));
+          },
+        ),
+      ),
+    );
+  }
+
+  PopupMenuButton<String> _popupMenu() {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'split') _onSplit();
+        if (value == 'merge') _onMerge();
+      },
+      itemBuilder: (_) {
+        return [
+          const PopupMenuItem<String>(value: 'split', child: Text('Split Order')),
+          const PopupMenuItem<String>(value: 'merge', child: Text('Merge Order')),
+        ];
+      },
+    );
+  }
+
+  Widget _serverMenu(
+    BuildContext context,
+    List<SubcategoryEntity> subcategories,
+    List<MenuItemEntity> menuItems,
+  ) {
+    final listMenuItem =
+        menuItems.where((item) => item.subCategory == _selectedSubcategoryId).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: RowSubcategoriesButton(
+              onButtonPress: (value) => setState(() => _selectedSubcategoryId = value.id),
+              subcategories: subcategories,
+              selectedSubcateroryId: _selectedSubcategoryId,
+            ),
+          ),
+        ),
+        sbH2,
+        Text(
+          subcategories
+              .firstWhere(
+                (element) => element.id == _selectedSubcategoryId,
+                orElse: () => subcategories.first,
+              )
+              .name,
+          style: context.bodyLargeBold,
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  listMenuItem.map((item) {
+                    return OrderButton(
+                      menuItem: item,
+                      quantity: _pendingOrderItems[item.id] ?? 0,
+                      onIncrement: () => _addPendingItem(item),
+                      onDecrement: () => _removePendingItem(item),
+                    );
+                  }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _serverOrderView(CompleteMenuState menuState) {
+    // Added menuState parameter
+    List<Widget> combinedList = [];
+
+    for (final orderItem in _currentOrderItems) {
+      combinedList.add(
+        ListTile(
+          title: Text(orderItem.menuItem.name),
+          subtitle: Text('Qty: ${orderItem.quantity}'),
+          trailing: Text(
+            '\$${(orderItem.quantity * orderItem.price).shortMoneyString}',
+            style: context.bodyMediumBold,
+          ),
+        ),
+      );
+    }
+
+    if (_currentOrderItems.isNotEmpty && _pendingOrderItems.isNotEmpty) {
+      combinedList.add(const Divider(height: 2, thickness: 2, color: Colors.grey));
+    }
+    if (menuState is CompleteMenuLoaded) {
+      for (final entry in _pendingOrderItems.entries) {
+        final menuItem = menuState.response.menuItems.firstWhere(
+          // Access menuItems safely
+          (item) => item.id == entry.key,
+        );
+        combinedList.add(
+          ListTile(
+            title: Text(menuItem.name),
+            subtitle: Text('Qty: ${entry.value} (Pending)'),
+            trailing: Text(
+              '\$${(menuItem.price * entry.value).shortMoneyString}',
+              style: context.bodyMediumBold,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      children: [
+        Expanded(
+          child:
+              combinedList.isEmpty
+                  ? const Center(child: Text('No items in order'))
+                  : ListView(children: combinedList),
+        ),
+        Padding(
+          padding: eiAll2,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: (_order != null && !_isServed()) ? _onServed : null,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: 8.borderRadius),
+                ),
+                child: const Text('Served'),
+              ),
+              FilledButton(
+                onPressed: _addOrder,
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: 8.borderRadius),
+                ),
+                child: const Text('Add Order'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   void _addPendingItem(MenuItemEntity item) {
     setState(() {
       _pendingOrderItems.update(item.id, (value) => value + 1, ifAbsent: () => 1);
     });
   }
 
-  // --- Remove Pending Item ---
   void _removePendingItem(MenuItemEntity item) {
     setState(() {
       if (_pendingOrderItems.containsKey(item.id)) {
@@ -68,16 +270,16 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
-  // --- Create or Update Order (Combined) ---
   void _addOrder() {
     if (_pendingOrderItems.isEmpty) return;
 
     List<OrderItemEntity> newOrderItems =
         _pendingOrderItems.entries.map((entry) {
-          final menuItem = _menuItems.firstWhere((item) => item.id == entry.key);
+          final menuItem = (_completeMenuCubit.state as CompleteMenuLoaded).response.menuItems
+              .firstWhere((item) => item.id == entry.key);
           return OrderItemEntity(
-            id: MockData.generateOrderItemId(), // New ID for each item
-            orderId: _order?.id ?? "", // Existing or new order ID
+            id: 'new_item_id',
+            orderId: _order?.id ?? "",
             menuItem: menuItem,
             quantity: entry.value,
             price: menuItem.price,
@@ -85,436 +287,159 @@ class _OrderPageState extends State<OrderPage> {
         }).toList();
 
     if (_order == null) {
-      // Create a new order
-      final newOrder = OrderEntity(
-        id: MockData.generateOrderId(),
-        tableId: _table.id,
-        timestamp: DateTime.now(),
-        orderItems: newOrderItems,
-        totalPrice: _calculateTotalPrice(newOrderItems), // Calculate for new order
-        createdBy: widget.user.id,
-        createdAt: DateTime.now(),
-      );
-      setState(() {
-        _order = newOrder;
-        MockData.orders.add(newOrder);
-        _table = _table.copyWith(status: TableStatus.pending, order: newOrder);
-        final tableIndex = MockData.tables.indexWhere((t) => t.id == _table.id);
-        if (tableIndex != -1) {
-          MockData.tables[tableIndex] = _table;
-        }
-        _currentOrderItems.addAll(newOrderItems); // Add to displayed items
-        _pendingOrderItems.clear(); // Clear pending
-      });
+      // Create a new order via Cubit
+      _orderCubit.createOrder(tableId: _table.id, orderItems: newOrderItems);
     } else {
-      // Update the existing order
-
-      // Merge current items and new items
       final mergedItems = [..._currentOrderItems];
+
       for (final newItem in newOrderItems) {
         final existingIndex = mergedItems.indexWhere(
           (item) => item.menuItem.id == newItem.menuItem.id,
         );
         if (existingIndex != -1) {
+          // Update quantity if item exists
           mergedItems[existingIndex] = mergedItems[existingIndex].copyWith(
             quantity: mergedItems[existingIndex].quantity + newItem.quantity,
           );
         } else {
+          // Add new item
           mergedItems.add(newItem);
         }
       }
-
       setState(() {
-        _order = _order!.copyWith(
-          orderItems: mergedItems,
-          totalPrice: _calculateTotalPrice(mergedItems),
-        ); // Update
-        final orderIndex = MockData.orders.indexWhere((o) => o.id == _order!.id);
-        if (orderIndex != -1) {
-          MockData.orders[orderIndex] = _order!;
-        }
-        _currentOrderItems.clear(); // Clear
-        _currentOrderItems.addAll(mergedItems); // Add all
-        _pendingOrderItems.clear(); // Clear pending
+        _currentOrderItems.clear();
+        _currentOrderItems.addAll(mergedItems);
+        _order = _order!.copyWith(orderItems: mergedItems);
+        _pendingOrderItems.clear();
       });
     }
   }
 
-  // --- Calculate Total Price (Modified to accept items) ---
-  double _calculateTotalPrice(List<OrderItemEntity> items) {
-    double totalPrice = 0;
-    for (final orderItem in items) {
-      final menuItem = _menuItems.firstWhere((item) => item.id == orderItem.menuItem.id);
-      totalPrice += menuItem.price * orderItem.quantity;
-    }
-    return double.parse(totalPrice.toStringAsFixed(2));
-  }
+  void _onSplit() {
+    if (_order == null) return;
 
-  // --- Complete Order ---
-  void _completeOrder(String paymentMethod) {
-    if (_order == null || _order!.orderItems.isEmpty) return;
+    List<bool> selectedItems = List.generate(_order!.orderItems.length, (index) => false);
 
-    final completedOrder = OrderHistoryEntity(
-      id: MockData.generateOrderHistoryId(),
-      orderId: _order!.id,
-      table: _table,
-      paymentMethod: paymentMethod,
-      createdAt: _order!.createdAt!,
-      servedAt: _order!.servedAt ?? DateTime.now(), // Use current time if null
-      completedAt: DateTime.now(),
-      orderItems: _order!.orderItems,
-      cashierId: widget.user.id,
-      totalPrice: _order!.totalPrice,
+    showCustomizeDialog(
+      context,
+      title: "Split Table: ${_table.name}",
+      actionText: "Select Table",
+      onAction: () async {
+        final result = await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SelectTablePage(order: _order, selectedItems: selectedItems),
+          ),
+        );
+        if (context.mounted && result != null) {
+          _orderCubit.splitOrder(
+            sourceTableId: _table.id,
+            targetTableId: result,
+            splitItemIds: getSelectedItems(_order!.orderItems, selectedItems),
+          );
+        }
+      },
+      content: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setStateDialog) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 400,
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: _order!.orderItems.length,
+                  itemBuilder: (context, index) {
+                    final orderItem = _order!.orderItems[index];
+                    return CheckboxListTile(
+                      title: Text(orderItem.menuItem.name),
+                      subtitle: Text("Qty: ${orderItem.quantity}"),
+                      value: selectedItems[index],
+                      onChanged: (newValue) {
+                        setStateDialog(() {
+                          selectedItems[index] = newValue!;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
-
-    setState(() {
-      MockData.completedOrders.add(completedOrder);
-      MockData.orders.removeWhere((o) => o.id == _order!.id);
-
-      // Update the table using copyWith, setting order to null
-      _table = _table.copyWith(status: TableStatus.completed, order: null);
-      // Find table and update
-      final tableIndex = MockData.tables.indexWhere((t) => t.id == _table.id);
-      if (tableIndex != -1) {
-        MockData.tables[tableIndex] = _table;
-      }
-      // Clear local state
-      _order = null;
-      _currentOrderItems.clear();
-    });
   }
 
-  // --- Update Order Item Quantity --- No longer used directly, kept for potential future use
+  void _onMerge() {
+    if (_order == null) return;
+    List<bool> selectedItems = List.generate(_order!.orderItems.length, (index) => false);
 
-  void _onSplit() {}
+    showCustomizeDialog(
+      context,
+      title: "Merge Table: ${_table.name}",
+      actionText: "Select Table",
+      onAction: () async {
+        final result = await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SelectTablePage(order: _order, selectedItems: selectedItems),
+          ),
+        );
 
-  void _onMerge() {}
+        if (context.mounted && result != null) {
+          _orderCubit.createMergeRequest(
+            sourceTableId: _table.id,
+            targetTableId: result,
+            splitItemIds: getSelectedItems(_order!.orderItems, selectedItems),
+          );
+        }
+      },
+      content: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setStateDialog) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 400,
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: selectedItems.length,
+                  itemBuilder: (context, index) {
+                    final orderItem = _order!.orderItems[index];
+                    return CheckboxListTile(
+                      title: Text(orderItem.menuItem.name),
+                      subtitle: Text("Qty: ${orderItem.quantity}"),
+                      value: selectedItems[index],
+                      onChanged: (newValue) {
+                        setStateDialog(() {
+                          selectedItems[index] = newValue!;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
-  void _onConfirmMerge() {}
+  List<String> getSelectedItems(List<OrderItemEntity> orderItems, List<bool> selectedItems) {
+    List<String> selectedIds = [];
+    for (int i = 0; i < selectedItems.length; i++) {
+      if (selectedItems[i]) {
+        selectedIds.add(orderItems[i].id);
+      }
+    }
+    return selectedIds;
+  }
 
   void _onServed() {
     if (_order == null) return;
-
-    setState(() {
-      // Update the order with served information
-      _order = _order!.copyWith(servedBy: widget.user.id, servedAt: DateTime.now());
-
-      // Update the table's status to served
-      _table = _table.copyWith(status: TableStatus.served);
-
-      // Find the order and update
-      final orderIndex = MockData.orders.indexWhere((o) => o.id == _order!.id);
-      if (orderIndex != -1) {
-        MockData.orders[orderIndex] = _order!;
-      }
-
-      // Find table and update
-      final tableIndex = MockData.tables.indexWhere((t) => t.id == _table.id);
-      if (tableIndex != -1) {
-        MockData.tables[tableIndex] = _table;
-      }
-    });
+    _orderCubit.serveOrder(orderId: _order!.id); // Use Cubit for state management
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        title: Text(_table.tableName),
-        centerTitle: true,
-        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'split') {
-                _onSplit();
-              } else if (value == 'merge') {
-                _onMerge();
-              } else if (value == 'confirm_merge') {
-                _onConfirmMerge();
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              if (widget.user.role == 'serve') {
-                return [
-                  PopupMenuItem<String>(value: 'split', child: Text('Split Order')),
-                  PopupMenuItem<String>(value: 'merge', child: Text('Merge Order')),
-                ];
-              } else if (widget.user.role == 'cashier' && _table.mergedTable > 1) {
-                return [
-                  PopupMenuItem<String>(value: 'confirm_merge', child: Text('Confirm Merge')),
-                ];
-              }
-              return [];
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.user.role == 'serve') ...[
-              Expanded(flex: 2, child: _buildServerMenu(context)),
-              VerticalDivider(width: 2, thickness: 2, color: Colors.grey),
-            ],
-            Expanded(
-              flex: 1,
-              child:
-                  widget.user.role == 'serve'
-                      ? _buildServerOrderView()
-                      : _buildCashierOrderView(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  bool _isServedOrComplete() =>
+  bool _isServed() =>
       widget.table.status == TableStatus.served || widget.table.status == TableStatus.completed;
-
-  Widget _buildServerMenu(BuildContext context) {
-    final filteredSubcategories =
-        _subcategories.where((sub) {
-          return _menuItems.any((menuItem) => menuItem.subCategory == sub.name);
-        }).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children:
-                  filteredSubcategories.map((sub) {
-                    return Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedSubcategoryId = sub.id;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _selectedSubcategoryId == sub.id
-                                  ? Colors.blue
-                                  : context.colorScheme.surfaceContainerHighest,
-                          shape: RoundedRectangleBorder(borderRadius: 8.radius),
-                        ),
-                        child: Text(
-                          sub.name,
-                          style: TextStyle(
-                            color: _selectedSubcategoryId == sub.id ? Colors.white : null,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            ),
-          ),
-        ),
-        sbH2(),
-        Text(
-          _subcategories
-              .firstWhere(
-                (element) => element.id == _selectedSubcategoryId,
-                orElse: () => _subcategories.first,
-              )
-              .name,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  _menuItems
-                      .where(
-                        (item) =>
-                            item.subCategory ==
-                            _subcategories.firstWhere((e) => e.id == _selectedSubcategoryId).name,
-                      )
-                      .map((item) {
-                        final quantity = _pendingOrderItems[item.id] ?? 0; // Get pending quantity
-                        return OrderButton(
-                          menuItem: item,
-                          quantity: quantity,
-                          onIncrement: () {
-                            _addPendingItem(item);
-                          },
-                          onDecrement: () {
-                            _removePendingItem(item);
-                          },
-                        );
-                      })
-                      .toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServerOrderView() {
-    // 1. Combine the lists:
-    List<Widget> combinedList = [];
-
-    // Add existing order items (if any)
-    for (final orderItem in _currentOrderItems) {
-      final menuItem = _menuItems.firstWhere((item) => item.id == orderItem.menuItem.id);
-      combinedList.add(
-        ListTile(
-          title: Text(menuItem.name),
-          subtitle: Text('Qty: ${orderItem.quantity}'),
-          trailing: Text('\$${(orderItem.quantity * orderItem.price).toStringAsFixed(2)}'),
-        ),
-      );
-    }
-
-    // Add a divider IF there are existing items AND pending items
-    if (_currentOrderItems.isNotEmpty && _pendingOrderItems.isNotEmpty) {
-      combinedList.add(Divider(height: 2, thickness: 2, color: Colors.grey));
-    }
-
-    // Add pending order items (if any)
-    for (final entry in _pendingOrderItems.entries) {
-      final menuItem = _menuItems.firstWhere((item) => item.id == entry.key);
-      combinedList.add(
-        ListTile(
-          title: Text(menuItem.name),
-          subtitle: Text('Qty: ${entry.value} (Pending)'), // Indicate pending
-          trailing: Text('\$${(menuItem.price * entry.value).toStringAsFixed(2)}'),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        Expanded(
-          child:
-              combinedList.isEmpty
-                  ? Center(child: Text('No items in order'))
-                  : ListView(
-                    children: combinedList, // Use the combined list
-                  ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: (_order != null && !_isServedOrComplete()) ? _onServed : null,
-                child: Text('Served'),
-              ),
-              ElevatedButton(onPressed: _addOrder, child: Text('Add Order')),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCashierOrderView(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child:
-              _order == null || _order!.orderItems.isEmpty
-                  ? Center(child: Text('No items in order'))
-                  : ListView.builder(
-                    itemCount: _order!.orderItems.length,
-                    itemBuilder: (context, index) {
-                      final orderItem = _order!.orderItems[index];
-                      final menuItem = _menuItems.firstWhere(
-                        (item) => item == orderItem.menuItem,
-                        orElse:
-                            () => MenuItemEntity(
-                              id: 'unknown',
-                              name: 'Unknown Item',
-                              price: 0,
-                              subCategory: '',
-                              isAvailable: false,
-                            ),
-                      );
-                      return ListTile(
-                        title: Text(menuItem.name),
-                        subtitle: Text('Qty: ${orderItem.quantity}'),
-                        trailing: Text(
-                          '\$${(orderItem.quantity * orderItem.price).toStringAsFixed(2)}',
-                        ),
-                      );
-                    },
-                  ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  String? selectedPaymentMethod;
-                  return AlertDialog(
-                    title: Text('Select Payment Method'),
-                    content: StatefulBuilder(
-                      builder: (BuildContext context, StateSetter setState) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            RadioListTile<String>(
-                              title: const Text('Cash'),
-                              value: 'cash',
-                              groupValue: selectedPaymentMethod,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedPaymentMethod = value;
-                                });
-                              },
-                            ),
-                            RadioListTile<String>(
-                              title: const Text('Online Payment'),
-                              value: 'online payment',
-                              groupValue: selectedPaymentMethod,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedPaymentMethod = value;
-                                });
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
-                      TextButton(
-                        onPressed:
-                            selectedPaymentMethod != null
-                                ? () {
-                                  _completeOrder(selectedPaymentMethod!);
-                                  Navigator.pop(context); // Close dialog
-                                  Navigator.pop(context); // Go back to HomePage
-                                }
-                                : null,
-                        child: Text('Complete'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: Text('Complete Order'),
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/errors/failures.dart';
-import '../../../core/usecase/usecase.dart';
-import '../../entities/area_table_entity.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/usecase.dart';
+import '../../entities/area_entity.dart';
 import '../../repositories/table_repository.dart';
 
 class UpdateAreaParams extends Equatable {
@@ -16,13 +16,13 @@ class UpdateAreaParams extends Equatable {
   List<Object?> get props => [id, name];
 }
 
-class UpdateAreaUseCase implements UseCase<AreaTableEntity, UpdateAreaParams> {
+class UpdateAreaUseCase implements UseCase<AreaEntity, UpdateAreaParams> {
   final TableRepository repository;
 
   UpdateAreaUseCase(this.repository);
 
   @override
-  Future<Either<Failure, AreaTableEntity>> call(UpdateAreaParams params) async {
+  Future<Either<Failure, AreaEntity>> call(UpdateAreaParams params) async {
     return await repository.updateArea(params);
   }
 }

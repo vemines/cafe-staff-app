@@ -34,4 +34,9 @@ extension BuildContextExt on BuildContext {
   // usage: context.snakebar("text")
   void snakebar(String text) =>
       ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(text)));
+
+  TextStyle get titleMediumBold => textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get titleLargeBold => textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get bodyLargeBold => textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold);
+  TextStyle get bodyMediumBold => textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold);
 }

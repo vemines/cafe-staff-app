@@ -1,17 +1,12 @@
-// lib/features/data/datasources/remote/user_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../models/user_model.dart';
 
 abstract class UserRemoteDataSource {
-  Future<List<UserModel>> getAllUsers({
-    required int page,
-    required int limit,
-    String? searchTerm,
-    String? roleFilter,
-  });
+  Future<List<UserModel>> getAllUsers();
   Future<UserModel> getUserById({required String userId});
   Future<UserModel> createUser({
     required String username,
@@ -41,24 +36,12 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   UserRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<List<UserModel>> getAllUsers({
-    required int page,
-    required int limit,
-    String? searchTerm,
-    String? roleFilter,
-  }) async {
+  Future<List<UserModel>> getAllUsers() async {
     try {
-      final response = await dio.get(
-        ApiEndpoints.users,
-        queryParameters: {'page': page, 'limit': limit, 'search': searchTerm, 'role': roleFilter},
-      );
+      final response = await dio.get(ApiEndpoints.users);
       return (response.data as List).map((item) => UserModel.fromJson(item)).toList();
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getAllUsers({required int page, required int limit, String? searchTerm, String? roleFilter})',
-      );
+      handleDioException(e, s, 'UserRemoteDataSource.getAllUsers');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -70,12 +53,13 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final response = await dio.get(ApiEndpoints.singleUser(userId));
       return UserModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getUserById({required String userId})');
+      handleDioException(e, s, 'UserRemoteDataSource.getUserById');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
+  @override
   @override
   Future<UserModel> createUser({
     required String username,
@@ -90,22 +74,19 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final response = await dio.post(
         ApiEndpoints.users,
         data: {
-          'username': username,
-          'fullname': fullname,
-          'role': role,
-          'password': password,
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'isActive': isActive,
+          UserApiMap.username: username,
+          UserApiMap.fullname: fullname,
+          UserApiMap.role: role,
+          UserApiMap.password: password,
+          UserApiMap.email: email,
+          UserApiMap.phoneNumber: phoneNumber,
+          UserApiMap.isActive: isActive,
         },
       );
-      return UserModel.fromJson(response.data);
+      final user = UserModel.fromJson(response.data);
+      return user;
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'createUser({required String username, required String fullname, required String role, required String password, required String email, required String phoneNumber, required bool isActive})',
-      );
+      handleDioException(e, s, 'AuthRemoteDataSource.register');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -123,26 +104,19 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     bool? isActive,
   }) async {
     try {
-      final response = await dio.patch(
-        ApiEndpoints.singleUser(id),
-        data: {
-          'username': username,
-          'fullname': fullname,
-          'role': role,
-          'password': password,
-          // lib/features/data/datasources/remote/user_remote_data_source.dart (Continued)
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'isActive': isActive,
-        },
-      );
+      final updateData = <String, dynamic>{};
+      if (username != null) updateData[UserApiMap.username] = username;
+      if (fullname != null) updateData[UserApiMap.fullname] = fullname;
+      if (role != null) updateData[UserApiMap.role] = role;
+      if (password != null) updateData[UserApiMap.password] = password;
+      if (email != null) updateData[UserApiMap.email] = email;
+      if (phoneNumber != null) updateData[UserApiMap.phoneNumber] = phoneNumber;
+      if (isActive != null) updateData[UserApiMap.isActive] = isActive;
+
+      final response = await dio.patch(ApiEndpoints.singleUser(id), data: updateData);
       return UserModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'updateUser({required String id, String? username, String? fullname, String? role, String? password, String? email, String? phoneNumber, bool? isActive})',
-      );
+      handleDioException(e, s, 'UserRemoteDataSource.updateUser');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -153,7 +127,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       await dio.delete(ApiEndpoints.singleUser(id));
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'deleteUser({required String id})');
+      handleDioException(e, s, 'UserRemoteDataSource.deleteUser');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/errors/failures.dart';
-import '../../../../../core/usecase/params.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/params.dart';
 import '../../usecases/menu/get_complete_menu_usecase.dart';
 
 part 'complete_menu_state.dart';

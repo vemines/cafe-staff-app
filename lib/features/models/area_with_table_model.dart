@@ -1,4 +1,4 @@
-import '../../core/constants/api_map.dart';
+import '/core/constants/api_map.dart';
 import '../entities/area_with_table_entity.dart';
 import '../entities/table_entity.dart';
 import 'table_model.dart';

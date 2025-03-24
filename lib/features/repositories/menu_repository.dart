@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 
-import '../../core/errors/exceptions.dart';
-import '../../core/errors/failures.dart';
-import '../../core/network/network_info.dart';
-import '../../core/usecase/usecase.dart';
+import '/core/errors/exceptions.dart';
+import '/core/errors/failures.dart';
+import '/core/network/network_info.dart';
+import '/core/usecase/usecase.dart';
 import '../datasources/menu_remote_data_source.dart';
 import '../entities/category_entity.dart';
 import '../entities/menu_item_entity.dart';
@@ -14,8 +14,6 @@ import '../usecases/menu/create_subcategory_usecase.dart';
 import '../usecases/menu/delete_category_usecase.dart';
 import '../usecases/menu/delete_menu_item_usecase.dart';
 import '../usecases/menu/delete_subcategory_usecase.dart';
-import '../usecases/menu/get_all_menu_items_usecase.dart';
-import '../usecases/menu/get_all_subcategories_usecase.dart';
 import '../usecases/menu/get_complete_menu_usecase.dart';
 import '../usecases/menu/update_category_usecase.dart';
 import '../usecases/menu/update_menu_item_usecase.dart';
@@ -27,14 +25,12 @@ abstract class MenuRepository {
   Future<Either<Failure, CategoryEntity>> updateCategory(UpdateCategoryParams params);
   Future<Either<Failure, Unit>> deleteCategory(DeleteCategoryParams params);
 
-  Future<Either<Failure, List<SubCategoryEntity>>> getAllSubCategories(
-    GetAllSubCategoriesParams params,
-  );
-  Future<Either<Failure, SubCategoryEntity>> createSubCategory(CreateSubCategoryParams params);
-  Future<Either<Failure, SubCategoryEntity>> updateSubCategory(UpdateSubCategoryParams params);
+  Future<Either<Failure, List<SubcategoryEntity>>> getAllSubCategories(NoParams params);
+  Future<Either<Failure, SubcategoryEntity>> createSubCategory(CreateSubCategoryParams params);
+  Future<Either<Failure, SubcategoryEntity>> updateSubCategory(UpdateSubCategoryParams params);
   Future<Either<Failure, Unit>> deleteSubCategory(DeleteSubCategoryParams params);
 
-  Future<Either<Failure, List<MenuItemEntity>>> getAllMenuItems(GetAllMenuItemsParams params);
+  Future<Either<Failure, List<MenuItemEntity>>> getAllMenuItems(NoParams params);
   Future<Either<Failure, MenuItemEntity>> createMenuItem(CreateMenuItemParams params);
   Future<Either<Failure, MenuItemEntity>> updateMenuItem(UpdateMenuItemParams params);
   Future<Either<Failure, Unit>> deleteMenuItem(DeleteMenuItemParams params);
@@ -82,6 +78,7 @@ class MenuRepositoryImpl implements MenuRepository {
         final remoteCategory = await remoteDataSource.updateCategory(
           id: params.id,
           name: params.name,
+          isActive: params.isActive,
         );
         return Right(remoteCategory);
       } catch (e) {
@@ -107,16 +104,10 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<Either<Failure, List<SubCategoryEntity>>> getAllSubCategories(
-    GetAllSubCategoriesParams params,
-  ) async {
+  Future<Either<Failure, List<SubcategoryEntity>>> getAllSubCategories(NoParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteSubCategories = await remoteDataSource.getAllSubCategories(
-          page: params.page,
-          limit: params.limit,
-          categoryId: params.categoryId,
-        );
+        final remoteSubCategories = await remoteDataSource.getAllSubCategories();
         return Right(remoteSubCategories);
       } catch (e) {
         return Left(handleRepositoryException(e));
@@ -127,7 +118,7 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<Either<Failure, SubCategoryEntity>> createSubCategory(
+  Future<Either<Failure, SubcategoryEntity>> createSubCategory(
     CreateSubCategoryParams params,
   ) async {
     if (await networkInfo.isConnected) {
@@ -135,7 +126,7 @@ class MenuRepositoryImpl implements MenuRepository {
         final remoteSubCategory = await remoteDataSource.createSubCategory(
           name: params.name,
           categoryId: params.categoryId,
-          items: params.items,
+          items: [],
         );
         return Right(remoteSubCategory);
       } catch (e) {
@@ -147,7 +138,7 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<Either<Failure, SubCategoryEntity>> updateSubCategory(
+  Future<Either<Failure, SubcategoryEntity>> updateSubCategory(
     UpdateSubCategoryParams params,
   ) async {
     if (await networkInfo.isConnected) {
@@ -157,6 +148,7 @@ class MenuRepositoryImpl implements MenuRepository {
           name: params.name,
           categoryId: params.categoryId,
           items: params.items,
+          isActive: params.isActive,
         );
         return Right(remoteSubCategory);
       } catch (e) {
@@ -182,16 +174,10 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<Either<Failure, List<MenuItemEntity>>> getAllMenuItems(
-    GetAllMenuItemsParams params,
-  ) async {
+  Future<Either<Failure, List<MenuItemEntity>>> getAllMenuItems(NoParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteMenuItems = await remoteDataSource.getAllMenuItems(
-          page: params.page,
-          limit: params.limit,
-          subcategoryId: params.subcategoryId,
-        );
+        final remoteMenuItems = await remoteDataSource.getAllMenuItems();
         return Right(remoteMenuItems);
       } catch (e) {
         return Left(handleRepositoryException(e));
@@ -209,7 +195,6 @@ class MenuRepositoryImpl implements MenuRepository {
           name: params.name,
           subCategory: params.subCategory,
           price: params.price,
-          isAvailable: params.isAvailable,
         );
         return Right(remoteMenuItem);
       } catch (e) {
@@ -229,7 +214,7 @@ class MenuRepositoryImpl implements MenuRepository {
           name: params.name,
           subCategoryId: params.subCategoryId,
           price: params.price,
-          isAvailable: params.isAvailable,
+          isActive: params.isActive,
         );
         return Right(remoteMenuItem);
       } catch (e) {

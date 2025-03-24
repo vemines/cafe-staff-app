@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../configs/configs.dart';
+import '/configs/configs.dart';
 
 part 'locale_key.dart';
 // Define a Keys class

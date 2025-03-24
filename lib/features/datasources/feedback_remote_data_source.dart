@@ -1,13 +1,19 @@
-// lib/features/data/datasources/remote/feedback_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../models/feedback_model.dart';
 
 abstract class FeedbackRemoteDataSource {
   Future<FeedbackModel> createFeedback({required int rating, required String comment});
-  Future<List<FeedbackModel>> getAllFeedback({required int page, required int limit});
+  Future<Map<String, dynamic>> getAllFeedback({
+    int? rating,
+    DateTime? startDate,
+    DateTime? endDate,
+    required int page,
+    required int limit,
+  });
 }
 
 class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
@@ -20,26 +26,41 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
     try {
       final response = await dio.post(
         ApiEndpoints.feedback,
-        data: {'rating': rating, 'comment': comment},
+        data: {FeedbackApiMap.rating: rating, FeedbackApiMap.comment: comment},
       );
       return FeedbackModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'createFeedback({required int rating, required String comment})');
+      handleDioException(e, s, 'FeedbackRemoteDataSource.createFeedback');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
   }
 
   @override
-  Future<List<FeedbackModel>> getAllFeedback({required int page, required int limit}) async {
+  Future<Map<String, dynamic>> getAllFeedback({
+    int? rating,
+    DateTime? startDate,
+    DateTime? endDate,
+    required int page,
+    required int limit,
+  }) async {
     try {
       final response = await dio.get(
         ApiEndpoints.feedback,
-        queryParameters: {'page': page, 'limit': limit},
+        queryParameters: {
+          if (rating != null) FeedbackApiMap.rating: rating,
+          if (startDate != null) FeedbackApiMap.startDate: startDate.toIso8601String(),
+          if (endDate != null) FeedbackApiMap.endDate: endDate.toIso8601String(),
+          'page': page,
+          'limit': limit,
+        },
       );
-      return (response.data as List).map((item) => FeedbackModel.fromJson(item)).toList();
+      final data =
+          (response.data['data'] as List).map((item) => FeedbackModel.fromJson(item)).toList();
+      final hasMore = response.data['hasMore'] as bool;
+      return {'data': data, 'hasMore': hasMore};
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'getAllFeedback({required int page, required int limit})');
+      handleDioException(e, s, 'FeedbackRemoteDataSource.getAllFeedback');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

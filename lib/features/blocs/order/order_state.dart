@@ -38,6 +38,15 @@ class OrderUpdated extends OrderState {
   List<Object> get props => [order];
 }
 
+// Add these new states
+class MergeRequestCreated extends OrderState {}
+
+class MergeRequestApproved extends OrderState {}
+
+class MergeRequestRejected extends OrderState {}
+
+class OrderSplitted extends OrderState {}
+
 class OrderError extends OrderState {
   final Failure failure;
 

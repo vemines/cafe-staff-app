@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/errors/failures.dart';
-import '../../../core/usecase/usecase.dart';
+import '/core/errors/failures.dart';
+import '/core/usecase/usecase.dart';
 import '../../entities/category_entity.dart';
 import '../../entities/menu_item_entity.dart';
 import '../../entities/sub_category_entity.dart';
@@ -10,7 +10,7 @@ import '../../repositories/menu_repository.dart';
 
 class GetCompleteMenuResponse extends Equatable {
   final List<CategoryEntity> categories;
-  final List<SubCategoryEntity> subCategories;
+  final List<SubcategoryEntity> subCategories;
   final List<MenuItemEntity> menuItems;
 
   const GetCompleteMenuResponse({

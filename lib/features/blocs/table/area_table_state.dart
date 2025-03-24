@@ -1,49 +1,49 @@
 part of 'area_table_cubit.dart';
 
-abstract class AreaTableState extends Equatable {
-  const AreaTableState();
+abstract class AreaState extends Equatable {
+  const AreaState();
 
   @override
   List<Object> get props => [];
 }
 
-class AreaTableInitial extends AreaTableState {}
+class AreaInitial extends AreaState {}
 
-class AreaTableLoading extends AreaTableState {}
+class AreaLoading extends AreaState {}
 
-class AreaTableLoaded extends AreaTableState {
-  final List<AreaTableEntity> areaTables;
+class AreaLoaded extends AreaState {
+  final List<AreaEntity> areas;
 
-  const AreaTableLoaded({required this.areaTables});
-
-  @override
-  List<Object> get props => [areaTables];
-}
-
-class AreaTableCreated extends AreaTableState {
-  final AreaTableEntity areaTable;
-
-  const AreaTableCreated({required this.areaTable});
+  const AreaLoaded({required this.areas});
 
   @override
-  List<Object> get props => [areaTable];
+  List<Object> get props => [areas];
 }
 
-class AreaTableUpdated extends AreaTableState {
-  final AreaTableEntity areaTable;
+class AreaCreated extends AreaState {
+  final AreaEntity area;
 
-  const AreaTableUpdated({required this.areaTable});
+  const AreaCreated({required this.area});
 
   @override
-  List<Object> get props => [areaTable];
+  List<Object> get props => [area];
 }
 
-class AreaTableDeleted extends AreaTableState {}
+class AreaUpdated extends AreaState {
+  final AreaEntity area;
 
-class AreaTableError extends AreaTableState {
+  const AreaUpdated({required this.area});
+
+  @override
+  List<Object> get props => [area];
+}
+
+class AreaDeleted extends AreaState {}
+
+class AreaError extends AreaState {
   final Failure failure;
 
-  const AreaTableError({required this.failure});
+  const AreaError({required this.failure});
 
   @override
   List<Object> get props => [failure];

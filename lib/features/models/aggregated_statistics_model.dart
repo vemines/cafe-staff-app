@@ -1,41 +1,40 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/aggregated_statistics_entity.dart';
+import '../entities/payment_statistic_entity.dart';
+import 'payment_statistic_model.dart';
 
 class AggregatedStatisticsModel extends AggregatedStatisticsEntity {
   const AggregatedStatisticsModel({
     required super.id,
     required super.year,
-    super.month,
+    required super.month,
     required super.totalOrders,
     required super.totalRevenue,
     required super.paymentMethodSummary,
     required super.averageRating,
-    required super.totalComments,
-    required super.bestSellingItems,
+    required super.totalFeedbacks,
+    required super.soldItems,
   });
 
   factory AggregatedStatisticsModel.fromJson(Map<String, dynamic> json) {
     return AggregatedStatisticsModel(
       id: json[AggregatedStatisticsApiMap.id] as String,
       year: intParse(json[AggregatedStatisticsApiMap.year]),
-      month:
-          json[AggregatedStatisticsApiMap.month] != null
-              ? intParse(json[AggregatedStatisticsApiMap.month])
-              : null,
+      month: intParse(json[AggregatedStatisticsApiMap.month]),
       totalOrders: intParse(json[AggregatedStatisticsApiMap.totalOrders]),
       totalRevenue: doubleParse(json[AggregatedStatisticsApiMap.totalRevenue]),
       paymentMethodSummary:
           ((json[AggregatedStatisticsApiMap.paymentMethodSummary] as Map<String, dynamic>?) ?? {})
-              .map((key, value) => MapEntry(key, intParse(value))),
+              .map((key, value) => MapEntry(key, PaymentStatisticModel.fromJson(value))),
       averageRating: doubleParse(json[AggregatedStatisticsApiMap.averageRating]),
-      totalComments: intParse(json[AggregatedStatisticsApiMap.totalComments]),
-      bestSellingItems:
-          ((json[AggregatedStatisticsApiMap.bestSellingItems] as Map<String, dynamic>?) ?? {}).map(
-            (key, value) => MapEntry(key, intParse(value)),
-          ),
+      totalFeedbacks: intParse(json[AggregatedStatisticsApiMap.totalComments]),
+      soldItems: ((json[AggregatedStatisticsApiMap.soldItems] as Map<String, dynamic>?) ?? {}).map(
+        (key, value) => MapEntry(key, intParse(value)),
+      ),
     );
   }
+
   factory AggregatedStatisticsModel.fromEntity(AggregatedStatisticsEntity entity) {
     return AggregatedStatisticsModel(
       id: entity.id,
@@ -43,10 +42,12 @@ class AggregatedStatisticsModel extends AggregatedStatisticsEntity {
       month: entity.month,
       totalOrders: entity.totalOrders,
       totalRevenue: entity.totalRevenue,
-      paymentMethodSummary: entity.paymentMethodSummary,
+      paymentMethodSummary: entity.paymentMethodSummary.map(
+        (key, value) => MapEntry(key, PaymentStatisticModel.fromEntity(value)),
+      ),
       averageRating: entity.averageRating,
-      totalComments: entity.totalComments,
-      bestSellingItems: entity.bestSellingItems,
+      totalFeedbacks: entity.totalFeedbacks,
+      soldItems: entity.soldItems,
     );
   }
 
@@ -57,10 +58,10 @@ class AggregatedStatisticsModel extends AggregatedStatisticsEntity {
     int? month,
     int? totalOrders,
     double? totalRevenue,
-    Map<String, int>? paymentMethodSummary,
+    Map<String, PaymentStatisticEntity>? paymentMethodSummary,
     double? averageRating,
-    int? totalComments,
-    Map<String, int>? bestSellingItems,
+    int? totalFeedbacks,
+    Map<String, int>? soldItems,
   }) {
     return AggregatedStatisticsModel(
       id: id ?? this.id,
@@ -70,8 +71,8 @@ class AggregatedStatisticsModel extends AggregatedStatisticsEntity {
       totalRevenue: totalRevenue ?? this.totalRevenue,
       paymentMethodSummary: paymentMethodSummary ?? this.paymentMethodSummary,
       averageRating: averageRating ?? this.averageRating,
-      totalComments: totalComments ?? this.totalComments,
-      bestSellingItems: bestSellingItems ?? this.bestSellingItems,
+      totalFeedbacks: totalFeedbacks ?? this.totalFeedbacks,
+      soldItems: soldItems ?? this.soldItems,
     );
   }
 
@@ -82,10 +83,12 @@ class AggregatedStatisticsModel extends AggregatedStatisticsEntity {
       AggregatedStatisticsApiMap.month: month,
       AggregatedStatisticsApiMap.totalOrders: totalOrders,
       AggregatedStatisticsApiMap.totalRevenue: totalRevenue,
-      AggregatedStatisticsApiMap.paymentMethodSummary: paymentMethodSummary,
+      AggregatedStatisticsApiMap.paymentMethodSummary: paymentMethodSummary.map(
+        (key, value) => MapEntry(key, (value as PaymentStatisticModel).toJson()),
+      ),
       AggregatedStatisticsApiMap.averageRating: averageRating,
-      AggregatedStatisticsApiMap.totalComments: totalComments,
-      AggregatedStatisticsApiMap.bestSellingItems: bestSellingItems,
+      AggregatedStatisticsApiMap.totalComments: totalFeedbacks,
+      AggregatedStatisticsApiMap.soldItems: soldItems,
     };
   }
 }

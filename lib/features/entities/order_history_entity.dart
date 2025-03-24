@@ -1,30 +1,29 @@
 import 'package:equatable/equatable.dart';
 
 import 'order_item_entity.dart';
-import 'table_entity.dart';
 
 class OrderHistoryEntity extends Equatable {
   final String id;
   final String orderId;
-  final TableEntity table;
+  final String tableName;
   final String paymentMethod;
   final DateTime createdAt;
   final DateTime servedAt;
   final DateTime completedAt;
   final List<OrderItemEntity> orderItems;
-  final String cashierId;
+  final String cashierName;
   final double totalPrice;
 
   const OrderHistoryEntity({
     required this.id,
     required this.orderId,
-    required this.table,
+    required this.tableName,
     required this.paymentMethod,
     required this.createdAt,
     required this.servedAt,
     required this.completedAt,
     required this.orderItems,
-    required this.cashierId,
+    required this.cashierName,
     required this.totalPrice, // Added totalPrice
   });
 
@@ -32,38 +31,38 @@ class OrderHistoryEntity extends Equatable {
   List<Object?> get props => [
     id,
     orderId,
-    table,
+    tableName,
     paymentMethod,
     createdAt,
     servedAt,
     completedAt,
     orderItems,
-    cashierId,
+    cashierName,
     totalPrice,
   ];
 
   OrderHistoryEntity copyWith({
     String? id,
     String? orderId,
-    TableEntity? table,
+    String? tableName,
     String? paymentMethod,
     DateTime? createdAt,
     DateTime? servedAt,
     DateTime? completedAt,
     List<OrderItemEntity>? orderItems,
-    String? cashierId,
+    String? cashierName,
     double? totalPrice,
   }) {
     return OrderHistoryEntity(
       id: id ?? this.id,
       orderId: orderId ?? this.orderId,
-      table: table ?? this.table,
+      tableName: tableName ?? this.tableName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
       servedAt: servedAt ?? this.servedAt,
       completedAt: completedAt ?? this.completedAt,
       orderItems: orderItems ?? this.orderItems,
-      cashierId: cashierId ?? this.cashierId,
+      cashierName: cashierName ?? this.cashierName,
       totalPrice: totalPrice ?? this.totalPrice,
     );
   }

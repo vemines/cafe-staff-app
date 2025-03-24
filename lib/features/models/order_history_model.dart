@@ -1,22 +1,20 @@
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/order_history_entity.dart';
 import '../entities/order_item_entity.dart';
-import '../entities/table_entity.dart';
 import 'order_item_model.dart';
-import 'table_model.dart';
 
 class OrderHistoryModel extends OrderHistoryEntity {
   const OrderHistoryModel({
     required super.id,
     required super.orderId,
-    required super.table,
+    required super.tableName,
     required super.paymentMethod,
     required super.createdAt,
     required super.servedAt,
     required super.completedAt,
     required super.orderItems,
-    required super.cashierId,
+    required super.cashierName,
     required super.totalPrice,
   });
 
@@ -24,7 +22,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return OrderHistoryModel(
       id: json[OrderHistoryApiMap.id] as String,
       orderId: json[OrderHistoryApiMap.orderId] as String,
-      table: TableModel.fromJson(json[OrderHistoryApiMap.table]),
+      tableName: json[OrderHistoryApiMap.tableName],
       paymentMethod: json[OrderHistoryApiMap.paymentMethod] as String,
       createdAt: dateParse(json[kCreatedAt]),
       servedAt: dateParse(json[OrderHistoryApiMap.servedAt]),
@@ -33,7 +31,7 @@ class OrderHistoryModel extends OrderHistoryEntity {
           (json[OrderHistoryApiMap.orderItems] as List)
               .map((item) => OrderItemModel.fromJson(item))
               .toList(),
-      cashierId: json[OrderHistoryApiMap.cashierId] as String,
+      cashierName: json[OrderHistoryApiMap.cashierName] as String,
       totalPrice: doubleParse(json[OrderHistoryApiMap.totalPrice]),
     );
   }
@@ -41,13 +39,13 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return OrderHistoryModel(
       id: entity.id,
       orderId: entity.orderId,
-      table: entity.table,
+      tableName: entity.tableName,
       paymentMethod: entity.paymentMethod,
       createdAt: entity.createdAt,
       servedAt: entity.servedAt,
       completedAt: entity.completedAt,
       orderItems: entity.orderItems.map((e) => OrderItemModel.fromEntity(e)).toList(),
-      cashierId: entity.cashierId,
+      cashierName: entity.cashierName,
       totalPrice: entity.totalPrice,
     );
   }
@@ -56,25 +54,25 @@ class OrderHistoryModel extends OrderHistoryEntity {
   OrderHistoryModel copyWith({
     String? id,
     String? orderId,
-    TableEntity? table,
+    String? tableName,
     String? paymentMethod,
     DateTime? createdAt,
     DateTime? servedAt,
     DateTime? completedAt,
     List<OrderItemEntity>? orderItems,
-    String? cashierId,
+    String? cashierName,
     double? totalPrice,
   }) {
     return OrderHistoryModel(
       id: id ?? this.id,
       orderId: orderId ?? this.orderId,
-      table: table ?? this.table,
+      tableName: tableName ?? this.tableName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
       servedAt: servedAt ?? this.servedAt,
       completedAt: completedAt ?? this.completedAt,
       orderItems: orderItems ?? this.orderItems,
-      cashierId: cashierId ?? this.cashierId,
+      cashierName: cashierName ?? this.cashierName,
       totalPrice: totalPrice ?? this.totalPrice,
     );
   }
@@ -83,14 +81,14 @@ class OrderHistoryModel extends OrderHistoryEntity {
     return {
       OrderHistoryApiMap.id: id,
       OrderHistoryApiMap.orderId: orderId,
-      OrderHistoryApiMap.table: table,
+      OrderHistoryApiMap.tableName: tableName,
       OrderHistoryApiMap.paymentMethod: paymentMethod,
       kCreatedAt: createdAt.toIso8601String(),
       OrderHistoryApiMap.servedAt: servedAt.toIso8601String(),
       OrderHistoryApiMap.completedAt: completedAt.toIso8601String(),
       OrderHistoryApiMap.orderItems:
           orderItems.map((item) => (item as OrderItemModel).toJson()).toList(),
-      OrderHistoryApiMap.cashierId: cashierId,
+      OrderHistoryApiMap.cashierName: cashierName,
       OrderHistoryApiMap.totalPrice: totalPrice,
     };
   }

@@ -1,4 +1,3 @@
-// lib/injection_container.dart
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -8,8 +7,8 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import 'app/flavor.dart';
 import 'core/network/network_info.dart';
-import 'core/services/socket_service.dart';
-import 'features/blocs/auth/auth_cubit.dart';
+// import 'core/services/socket_service.dart';
+// import 'features/blocs/auth/auth_cubit.dart';
 import 'features/blocs/feedback/feedback_cubit.dart';
 import 'features/blocs/menu/category_cubit.dart';
 import 'features/blocs/menu/complete_menu_cubit.dart';
@@ -17,6 +16,7 @@ import 'features/blocs/menu/menu_item_cubit.dart';
 import 'features/blocs/menu/sub_category_cubit.dart';
 import 'features/blocs/order/order_cubit.dart';
 import 'features/blocs/order_history/order_history_cubit.dart';
+import 'features/blocs/payment/payment_cubit.dart';
 import 'features/blocs/statistics/statistics_cubit.dart';
 import 'features/blocs/table/area_table_cubit.dart';
 import 'features/blocs/table/area_with_tables_cubit.dart';
@@ -28,6 +28,7 @@ import 'features/datasources/feedback_remote_data_source.dart';
 import 'features/datasources/menu_remote_data_source.dart';
 import 'features/datasources/order_history_remote_data_source.dart';
 import 'features/datasources/order_remote_data_source.dart';
+import 'features/datasources/payment_remote_data_source.dart';
 import 'features/datasources/statistics_remote_data_source.dart';
 import 'features/datasources/table_remote_data_source.dart';
 import 'features/datasources/user_remote_data_source.dart';
@@ -36,6 +37,7 @@ import 'features/repositories/feedback_repository.dart';
 import 'features/repositories/menu_repository.dart';
 import 'features/repositories/order_history_repository.dart';
 import 'features/repositories/order_repository.dart';
+import 'features/repositories/payment_repository.dart';
 import 'features/repositories/statistics_repository.dart';
 import 'features/repositories/table_repository.dart';
 import 'features/repositories/user_repository.dart';
@@ -57,29 +59,33 @@ import 'features/usecases/menu/get_complete_menu_usecase.dart';
 import 'features/usecases/menu/update_category_usecase.dart';
 import 'features/usecases/menu/update_menu_item_usecase.dart';
 import 'features/usecases/menu/update_subcategory_usecase.dart';
+import 'features/usecases/order/approve_merge_request_usecase.dart';
+import 'features/usecases/order/complete_order_usecase.dart';
+import 'features/usecases/order/create_merge_request_usecase.dart';
 import 'features/usecases/order/create_order_usecase.dart';
-import 'features/usecases/order/get_order_by_id_usecase.dart';
-import 'features/usecases/order/get_orders_usecase.dart';
-import 'features/usecases/order/update_order_usecase.dart';
+import 'features/usecases/order/reject_merge_request_usecase.dart';
+import 'features/usecases/order/serve_order_usecase.dart';
+import 'features/usecases/order/split_order_usecase.dart';
 import 'features/usecases/order_history/get_all_order_history_usecase.dart';
-import 'features/usecases/order_history/get_order_history_by_id_usecase.dart';
+import 'features/usecases/payments/create_payment_usecased.dart';
+import 'features/usecases/payments/delete_payment_usecase.dart';
+import 'features/usecases/payments/get_all_payments_usecase.dart';
+import 'features/usecases/payments/update_payment_usecase.dart';
 import 'features/usecases/statistics/get_all_aggregated_statistics_usecase.dart';
-import 'features/usecases/statistics/get_all_statistics_usecase.dart';
 import 'features/usecases/statistics/get_this_week_statistics_usecase.dart';
 import 'features/usecases/statistics/get_today_statistics_usecase.dart';
-import 'features/usecases/statistics/get_yearly_statistics_usecase.dart';
 import 'features/usecases/table/create_area_usecase.dart';
 import 'features/usecases/table/create_table_usecase.dart';
 import 'features/usecases/table/delete_area_usecase.dart';
 import 'features/usecases/table/delete_table_usecase.dart';
-import 'features/usecases/table/get_all_areas_usecase.dart';
-import 'features/usecases/table/get_all_tables_usecase.dart';
+import 'features/usecases/table/get_all_area_usecase.dart';
+import 'features/usecases/table/get_all_table_usecase.dart';
 import 'features/usecases/table/get_areas_with_tables_usecase.dart';
 import 'features/usecases/table/update_area_usecase.dart';
 import 'features/usecases/table/update_table_usecase.dart';
 import 'features/usecases/user/create_user_usecase.dart';
 import 'features/usecases/user/delete_user_usecase.dart';
-import 'features/usecases/user/get_all_users_usecase.dart';
+import 'features/usecases/user/get_all_user_usecase.dart';
 import 'features/usecases/user/get_user_by_id_usecase.dart';
 import 'features/usecases/user/update_user_usecase.dart';
 
@@ -88,9 +94,9 @@ final sl = GetIt.instance;
 Future<void> init() async {
   //! Features
   // Bloc
-  sl.registerSingleton(
-    () => AuthCubit(loginUseCase: sl(), logoutUseCase: sl(), getLoggedUserUseCase: sl()),
-  );
+  // sl.registerSingleton(
+  //   () => AuthCubit(loginUseCase: sl(), logoutUseCase: sl(), getLoggedUserUseCase: sl()),
+  // );
   sl.registerFactory(() => FeedbackCubit(createFeedbackUseCase: sl(), getAllFeedbackUseCase: sl()));
   sl.registerFactory(
     () => CategoryCubit(
@@ -120,42 +126,39 @@ Future<void> init() async {
   sl.registerFactory(
     () => OrderCubit(
       createOrderUseCase: sl(),
-      getOrdersUseCase: sl(),
-      getOrderByIdUseCase: sl(),
-      updateOrderUseCase: sl(),
+      serveOrderUseCase: sl(),
+      completeOrderUseCase: sl(),
+      createMergeRequestUseCase: sl(),
+      approveMergeRequestUseCase: sl(),
+      splitOrderUseCase: sl(),
+      rejectMergeRequestUseCase: sl(),
     ),
   );
-  sl.registerFactory(
-    () => OrderHistoryCubit(getAllOrderHistoryUseCase: sl(), getOrderHistoryByIdUseCase: sl()),
-  );
+  sl.registerFactory(() => OrderHistoryCubit(getAllOrderHistoryUseCase: sl()));
   sl.registerFactory(
     () => StatisticsCubit(
-      getAllStatisticsUseCase: sl(),
       getAllAggregatedStatisticsUseCase: sl(),
       getTodayStatisticsUseCase: sl(),
       getThisWeekStatisticsUseCase: sl(),
-      getYearlyStatisticsUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => AreaCubit(
-      getAllAreasUseCase: sl(),
       createAreaUseCase: sl(),
       updateAreaUseCase: sl(),
       deleteAreaUseCase: sl(),
+      getAllAreaUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => TableCubit(
-      getAllTablesUseCase: sl(),
       createTableUseCase: sl(),
       updateTableUseCase: sl(),
       deleteTableUseCase: sl(),
+      getAllTablesUseCase: sl(),
     ),
   );
-  sl.registerFactory(
-    () => AreaWithTablesCubit(getAreasWithTablesUseCase: sl(), socketService: sl()),
-  ); // Inject TableRemoteDataSource
+  sl.registerFactory(() => AreaWithTablesCubit(getAreasWithTablesUseCase: sl()));
   sl.registerFactory(
     () => UserCubit(
       getAllUsersUseCase: sl(),
@@ -165,6 +168,14 @@ Future<void> init() async {
       deleteUserUseCase: sl(),
     ),
   );
+  sl.registerFactory(
+    () => PaymentCubit(
+      getAllPaymentsUseCase: sl(),
+      createPaymentUseCase: sl(),
+      updatePaymentUseCase: sl(),
+      deletePaymentUseCase: sl(),
+    ),
+  );
 
   // Use cases
   sl.registerLazySingleton(() => LoginUseCase(sl()));
@@ -172,11 +183,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetLoggedUserUseCase(sl()));
   sl.registerLazySingleton(() => CreateFeedbackUseCase(sl()));
   sl.registerLazySingleton(() => GetAllFeedbackUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllCategoryUseCase(sl()));
   sl.registerLazySingleton(() => CreateCategoryUseCase(sl()));
   sl.registerLazySingleton(() => UpdateCategoryUseCase(sl()));
   sl.registerLazySingleton(() => DeleteCategoryUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllSubCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllSubCategoryUseCase(sl()));
   sl.registerLazySingleton(() => CreateSubCategoryUseCase(sl()));
   sl.registerLazySingleton(() => UpdateSubCategoryUseCase(sl()));
   sl.registerLazySingleton(() => DeleteSubCategoryUseCase(sl()));
@@ -186,30 +197,34 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteMenuItemUseCase(sl()));
   sl.registerLazySingleton(() => GetCompleteMenuUseCase(sl()));
   sl.registerLazySingleton(() => CreateOrderUseCase(sl()));
-  sl.registerLazySingleton(() => GetOrdersUseCase(sl()));
-  sl.registerLazySingleton(() => GetOrderByIdUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateOrderUseCase(sl()));
+  sl.registerLazySingleton(() => ServeOrderUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteOrderUseCase(sl()));
+  sl.registerLazySingleton(() => CreateMergeRequestUseCase(sl()));
+  sl.registerLazySingleton(() => ApproveMergeRequestUseCase(sl()));
+  sl.registerLazySingleton(() => RejectMergeRequestUseCase(sl()));
+  sl.registerLazySingleton(() => SplitOrderUseCase(sl()));
   sl.registerLazySingleton(() => GetAllOrderHistoryUseCase(sl()));
-  sl.registerLazySingleton(() => GetOrderHistoryByIdUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllStatisticsUseCase(sl()));
   sl.registerLazySingleton(() => GetAllAggregatedStatisticsUseCase(sl()));
   sl.registerLazySingleton(() => GetTodayStatisticsUseCase(sl()));
   sl.registerLazySingleton(() => GetThisWeekStatisticsUseCase(sl()));
-  sl.registerLazySingleton(() => GetYearlyStatisticsUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllAreasUseCase(sl()));
   sl.registerLazySingleton(() => CreateAreaUseCase(sl()));
   sl.registerLazySingleton(() => UpdateAreaUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAreaUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllTablesUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllAreaUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllTableUseCase(sl()));
   sl.registerLazySingleton(() => CreateTableUseCase(sl()));
   sl.registerLazySingleton(() => UpdateTableUseCase(sl()));
   sl.registerLazySingleton(() => DeleteTableUseCase(sl()));
   sl.registerLazySingleton(() => GetAreasWithTablesUseCase(sl()));
-  sl.registerLazySingleton(() => GetAllUsersUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllUserUseCase(sl()));
   sl.registerLazySingleton(() => GetUserByIdUseCase(sl()));
   sl.registerLazySingleton(() => CreateUserUseCase(sl()));
   sl.registerLazySingleton(() => UpdateUserUseCase(sl()));
   sl.registerLazySingleton(() => DeleteUserUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllPaymentUseCase(sl()));
+  sl.registerLazySingleton(() => CreatePaymentUseCase(sl()));
+  sl.registerLazySingleton(() => UpdatePaymentUseCase(sl()));
+  sl.registerLazySingleton(() => DeletePaymentUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
@@ -236,6 +251,9 @@ Future<void> init() async {
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
   );
+  sl.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl(dio: sl()));
@@ -251,47 +269,48 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<TableRemoteDataSource>(() => TableRemoteDataSourceImpl(dio: sl()));
   sl.registerLazySingleton<UserRemoteDataSource>(() => UserRemoteDataSourceImpl(dio: sl()));
+  sl.registerLazySingleton<PaymentRemoteDataSource>(() => PaymentRemoteDataSourceImpl(dio: sl()));
 
   //! Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerSingletonAsync<SocketService>(
-    () async {
-      final authCubit = sl<AuthCubit>();
-      String? currentUserId = '';
+  // sl.registerSingletonAsync<SocketService>(
+  //   () async {
+  // final authCubit = sl<AuthCubit>();
+  // String? currentUserId = '';
 
-      // Get initial user ID, if available
-      final authState = authCubit.state;
-      if (authState is AuthAuthenticated) {
-        currentUserId = authState.user.id;
-      }
+  // // Get initial user ID, if available
+  // final authState = authCubit.state;
+  // if (authState is AuthAuthenticated) {
+  //   currentUserId = authState.user.id;
+  // }
 
-      final socketService = SocketService(userId: currentUserId);
+  //     final socketService = SocketService(userId: currentUserId);
 
-      // Listen to AuthCubit's state changes using a local variable.
-      authCubit.stream.listen((state) {
-        if (state is AuthAuthenticated) {
-          if (socketService.userId != state.user.id) {
-            // User changed, dispose and create new one
-            socketService.dispose();
-            // Create SocketService instance
-            sl.registerSingleton<SocketService>(SocketService(userId: state.user.id));
-          }
-        } else if (state is AuthUnauthenticated) {
-          socketService.dispose();
-          // Unregister, next time will register again
-          if (sl.isRegistered<SocketService>()) {
-            sl.unregister<SocketService>();
-          }
-        }
-      });
+  //     // Listen to AuthCubit's state changes using a local variable.
+  //     authCubit.stream.listen((state) {
+  //       if (state is AuthAuthenticated) {
+  //         if (socketService.userId != state.user.id) {
+  //           // User changed, dispose and create new one
+  //           socketService.dispose();
+  //           // Create SocketService instance
+  //           sl.registerSingleton<SocketService>(SocketService(userId: state.user.id));
+  //         }
+  //       } else if (state is AuthUnauthenticated) {
+  //         socketService.dispose();
+  //         // Unregister, next time will register again
+  //         if (sl.isRegistered<SocketService>()) {
+  //           sl.unregister<SocketService>();
+  //         }
+  //       }
+  //     });
 
-      // Dispose of the socket and cancel the subscription when unregistering.
-      return socketService;
-    },
-    dispose: (service) {
-      service.dispose();
-    },
-  );
+  //     // Dispose of the socket and cancel the subscription when unregistering.
+  //     return socketService;
+  //   },
+  //   dispose: (service) {
+  //     service.dispose();
+  //   },
+  // );
 
   //! External
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -303,10 +322,10 @@ Future<void> init() async {
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio();
 
-    final authState = sl<AuthCubit>().state;
-    if (authState is AuthAuthenticated) {
-      dio.options.headers = {'userid': authState.user.id, 'Content-Type': 'application/json'};
-    }
+    // final authState = sl<AuthCubit>().state;
+    // if (authState is AuthAuthenticated) {
+    //   dio.options.headers = {'userid': authState.user.id, 'Content-Type': 'application/json'};
+    // }
 
     dio.options.baseUrl = flavor.baseUrl;
     dio.options.connectTimeout = Duration(seconds: flavor.requestTimeout);
@@ -318,11 +337,11 @@ Future<void> init() async {
   // Initialize and register Socket.IO *before* the Cubit
   sl.registerLazySingleton<io.Socket>(() {
     final socket = io.io(
-      flavor.baseUrl, // Use baseUrl from Flavor
+      flavor.baseUrl,
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setExtraHeaders(sl<Dio>().options.headers) // Pass headers from Dio (including userId)
-          .disableAutoConnect() // Important: Don't auto-connect here
+          .setExtraHeaders(sl<Dio>().options.headers)
+          .disableAutoConnect()
           .build(),
     );
     return socket;

@@ -1,7 +1,7 @@
 // usage: FlavorService.instance.config.name
 // usage: FlavorService.instance.config.someThing
 
-import '../configs/flavor_config.dart';
+import '/configs/flavor_config.dart';
 
 enum Flavor { dev, staging, prod }
 

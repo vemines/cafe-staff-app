@@ -1,8 +1,8 @@
-// lib/features/data/datasources/remote/order_remote_data_source.dart
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants/api_endpoints.dart';
-import '../../../../../core/errors/exceptions.dart';
+import '/core/constants/api_endpoints.dart';
+import '/core/constants/api_map.dart';
+import '/core/errors/exceptions.dart';
 import '../entities/order_item_entity.dart';
 import '../models/order_model.dart';
 
@@ -11,16 +11,8 @@ abstract class OrderRemoteDataSource {
     required String tableId,
     required List<OrderItemEntity> orderItems,
   });
-  Future<List<OrderModel>> getOrders({
-    required int page,
-    required int limit,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? tableId,
-  });
-  Future<OrderModel> getOrderById({required String orderId});
 
-  Future<OrderModel> updateOrder({required String id, String? orderStatus, String? paymentMethod});
+  Future<OrderModel> updateOrder({required String id, String? paymentMethod, String? status});
 
   Future<void> mergeOrders({
     required String sourceTableId,
@@ -33,6 +25,7 @@ abstract class OrderRemoteDataSource {
     required List<String> splitItemIds,
   });
   Future<void> approveMerge({required String mergeRequestId});
+  Future<void> rejectMergeRequest({required String mergeRequestId});
 }
 
 class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
@@ -49,14 +42,14 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
       final response = await dio.post(
         ApiEndpoints.orders,
         data: {
-          'tableId': tableId,
-          'orderItems':
+          OrderApiMap.tableId: tableId,
+          OrderApiMap.orderItems:
               orderItems
                   .map(
                     (item) => {
-                      'menuItemId': item.menuItem,
-                      'quantity': item.quantity,
-                      'price': item.price,
+                      OrderItemApiMap.menuItem: item.menuItem.id,
+                      OrderItemApiMap.quantity: item.quantity,
+                      OrderItemApiMap.price: item.price,
                     },
                   )
                   .toList(),
@@ -64,54 +57,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
       );
       return OrderModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'createOrder({required String tableId, required List<OrderItemEntity> orderItems})',
-      );
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
-  Future<OrderModel> getOrderById({required String orderId}) async {
-    try {
-      final response = await dio.get(ApiEndpoints.singleOrder(orderId));
-      return OrderModel.fromJson(response.data);
-    } on DioException catch (e, s) {
-      handleDioException(e, s, 'getOrderById({required String orderId})');
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
-  Future<List<OrderModel>> getOrders({
-    required int page,
-    required int limit,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? tableId,
-  }) async {
-    try {
-      final response = await dio.get(
-        ApiEndpoints.orders,
-        queryParameters: {
-          'page': page,
-          'limit': limit,
-          'startDate': startDate?.toIso8601String(),
-          'endDate': endDate?.toIso8601String(),
-          'tableId': tableId,
-        },
-      );
-      return (response.data as List).map((item) => OrderModel.fromJson(item)).toList();
-    } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'getOrders({required int page, required int limit, DateTime? startDate, DateTime? endDate, String? tableId})',
-      );
+      handleDioException(e, s, 'OrderRemoteDataSource.createOrder');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -120,21 +66,17 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   @override
   Future<OrderModel> updateOrder({
     required String id,
-    String? orderStatus,
     String? paymentMethod,
+    String? status,
   }) async {
     try {
-      final response = await dio.patch(
-        ApiEndpoints.singleOrder(id),
-        data: {'orderStatus': orderStatus, 'paymentMethod': paymentMethod},
-      );
+      final updateData = <String, dynamic>{};
+      if (paymentMethod != null) updateData[OrderApiMap.paymentMethod] = paymentMethod;
+      if (status != null) updateData[OrderApiMap.status] = status;
+      final response = await dio.patch(ApiEndpoints.singleOrder(id), data: updateData);
       return OrderModel.fromJson(response.data);
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'updateOrder({required String id, String? orderStatus, String? paymentMethod})',
-      );
+      handleDioException(e, s, 'OrderRemoteDataSource.updateOrder');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -156,11 +98,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
         },
       );
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'mergeOrders({required String sourceTableId, required String targetTableId, required List<String> splitItemIds})',
-      );
+      handleDioException(e, s, 'OrderRemoteDataSource.mergeOrders');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -182,11 +120,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
         },
       );
     } on DioException catch (e, s) {
-      handleDioException(
-        e,
-        s,
-        'splitOrder({required String sourceTableId, required String targetTableId, required List<String> splitItemIds})',
-      );
+      handleDioException(e, s, 'OrderRemoteDataSource.splitOrder');
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }
@@ -197,7 +131,18 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
     try {
       await dio.post(ApiEndpoints.approveMergeOrder, data: {'mergeRequestId': mergeRequestId});
     } on DioException catch (e, s) {
-      handleDioException(e, s, "approveMerge({required String mergeRequestId})");
+      handleDioException(e, s, "OrderRemoteDataSource.approveMerge");
+    } catch (e, s) {
+      throw ServerException(message: e.toString(), stackTrace: s);
+    }
+  }
+
+  @override
+  Future<void> rejectMergeRequest({required String mergeRequestId}) async {
+    try {
+      await dio.post(ApiEndpoints.rejectMergeOrder, data: {'mergeRequestId': mergeRequestId});
+    } on DioException catch (e, s) {
+      handleDioException(e, s, "OrderRemoteDataSource.rejectMergeRequest");
     } catch (e, s) {
       throw ServerException(message: e.toString(), stackTrace: s);
     }

@@ -1,9 +1,8 @@
+import '/core/constants/api_map.dart';
+import '/core/utils/parse_utils.dart';
 import '../entities/menu_item_entity.dart';
-import 'menu_item_model.dart';
-
-import '../../core/constants/api_map.dart';
-import '../../core/utils/parse_utils.dart';
 import '../entities/order_item_entity.dart';
+import 'menu_item_model.dart';
 
 class OrderItemModel extends OrderItemEntity {
   const OrderItemModel({
