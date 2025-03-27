@@ -1,16 +1,15 @@
-// Path: lib/features/page/admin/dashboard/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import '../widgets/dialog_info_row.dart';
+import '/app/locale.dart';
 import '/app/paths.dart';
-import '/core/extensions/string_extensions.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
 import '/core/extensions/num_extensions.dart';
+import '/core/extensions/string_extensions.dart';
 import '/core/utils/parse_utils.dart';
 import '/core/widgets/space.dart';
 import '/features/blocs/statistics/statistics_cubit.dart';
@@ -19,6 +18,7 @@ import '/features/entities/statistics_entity.dart';
 import '/injection_container.dart';
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_drawer.dart';
+import '../widgets/dialog_info_row.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -59,7 +59,7 @@ class _DashboardPageState extends State<DashboardPage> {
     filledWeek = 0;
     return Scaffold(
       key: _scaffoldKey,
-      appBar: adminAppBar(_scaffoldKey, "Dashboard"),
+      appBar: adminAppBar(_scaffoldKey, context.tr(I18nKeys.dashboard)),
       drawer: const AdminDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -71,9 +71,9 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
             child: Column(
               children: [
-                _buildTodaySection(),
+                _buildTodaySection(context),
                 sbH4,
-                _buildWeeklyChart(),
+                _buildWeeklyChart(context),
                 sbH4,
                 _buildMonthlyChart(context),
               ],
@@ -84,11 +84,11 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTodaySection() {
+  Widget _buildTodaySection(BuildContext context) {
     return BlocBuilder<StatisticsCubit, StatisticsState>(
       bloc: _todayCubit,
       builder: (context, state) {
-        if (state is StatisticsLoading) {
+        if (state is StatisticsInitial || state is StatisticsLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is StatisticsError && state.failure.message != 'Not Found') {
           return Center(child: Text("Error: ${state.failure.message}"));
@@ -96,26 +96,26 @@ class _DashboardPageState extends State<DashboardPage> {
           final todayStats = state.statistic;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [_metricCards(todayStats), sbH4, _bestSellings(todayStats)],
+            children: [_metricCards(context, todayStats), sbH4, _bestSellings(context, todayStats)],
           );
         }
-        return const Center(child: Text("No data available for today."));
+        return Center(child: Text(context.tr(I18nKeys.noData)));
       },
     );
   }
 
-  Widget _buildWeeklyChart() {
+  Widget _buildWeeklyChart(BuildContext context) {
     return BlocBuilder<StatisticsCubit, StatisticsState>(
       bloc: _weeklyCubit,
       builder: (context, state) {
-        if (state is StatisticsLoading) {
+        if (state is StatisticsInitial || state is StatisticsLoading) {
           return const SizedBox.shrink();
         } else if (state is StatisticsError) {
           return Center(child: Text("Weekly Error: ${state.failure.message}"));
         } else if (state is WeeklyStatisticsLoaded) {
-          return _weeklyChart(state.statistics);
+          return _weeklyChart(context, state.statistics);
         }
-        return const Center(child: Text("No weekly data available."));
+        return Center(child: Text(context.tr(I18nKeys.noData)));
       },
     );
   }
@@ -124,19 +124,19 @@ class _DashboardPageState extends State<DashboardPage> {
     return BlocBuilder<StatisticsCubit, StatisticsState>(
       bloc: _monthlyCubit,
       builder: (context, state) {
-        if (state is StatisticsLoading) {
+        if (state is StatisticsInitial || state is StatisticsLoading) {
           return const SizedBox.shrink();
         } else if (state is StatisticsError) {
           return Center(child: Text("Monthly Error: ${state.failure.message}"));
         } else if (state is AggregatedStatisticsLoaded) {
           return _monthlyChart(context, state.statistics);
         }
-        return const Center(child: Text("No monthly data available."));
+        return Center(child: Text(context.tr(I18nKeys.noData)));
       },
     );
   }
 
-  Widget _metricCards(StatisticsEntity todayStats) {
+  Widget _metricCards(BuildContext context, StatisticsEntity todayStats) {
     final totalRevenue = todayStats.totalRevenue;
     final totalOrders = todayStats.totalOrders;
     final totalFeedbacks = todayStats.totalFeedbacks;
@@ -153,16 +153,21 @@ class _DashboardPageState extends State<DashboardPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _metricCard(context, 'Revenue', '\$${totalRevenue.shortMoneyString}', Icons.paid),
         _metricCard(
           context,
-          'Orders',
+          context.tr(I18nKeys.revenue),
+          '\$${totalRevenue.shortMoneyString}',
+          Icons.paid,
+        ),
+        _metricCard(
+          context,
+          context.tr(I18nKeys.orders),
           '$totalOrders',
           Icons.assignment,
           onTap: () => context.push(Paths.orderHistory),
         ),
-        _metricCard(context, 'Selled', '$selledItems', Icons.sell),
-        _metricCard(context, 'Feedback', '$totalFeedbacks', Icons.reviews),
+        _metricCard(context, context.tr(I18nKeys.selled), '$selledItems', Icons.sell),
+        _metricCard(context, context.tr(I18nKeys.feedback), '$totalFeedbacks', Icons.reviews),
       ],
     );
   }
@@ -189,7 +194,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Icon(icon, size: 32),
-                  sbW2,
                   Flexible(child: Text(title, style: context.titleMediumBold)),
                 ],
               ),
@@ -201,7 +205,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _bestSellings(StatisticsEntity todayStats) {
+  Widget _bestSellings(BuildContext context, StatisticsEntity todayStats) {
     final bestSells = Map.fromEntries(
       todayStats.soldItems.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
     );
@@ -217,11 +221,16 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Row(
               children: [
-                Flexible(child: Text('Today Best Selling Items', style: context.titleMediumBold)),
+                Flexible(
+                  child: Text(
+                    context.tr(I18nKeys.todayBestSellingItems),
+                    style: context.titleMediumBold,
+                  ),
+                ),
               ],
             ),
             if (top5BestSells.isEmpty)
-              Padding(padding: eiAll2, child: const Text("Selling data is empty"))
+              Padding(padding: eiAll2, child: Text(context.tr(I18nKeys.sellingDataEmpty)))
             else
               ...top5BestSells.map(
                 (entry) => ListTile(
@@ -250,16 +259,17 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _weeklyChart(List<StatisticsEntity> weeklyStats) {
+  Widget _weeklyChart(BuildContext context, List<StatisticsEntity> weeklyStats) {
     return _chartCard(
-      'Weekly Revenue',
+      context,
+      context.tr(I18nKeys.weeklyRevenue),
       SfCartesianChart(
-        primaryXAxis: DateTimeAxis(interval: 1, dateFormat: DateFormat.d()),
+        primaryXAxis: CategoryAxis(interval: 1),
         primaryYAxis: NumericAxis(
           numberFormat: NumberFormat.compactCurrency(symbol: '\$', decimalDigits: 0),
         ),
-        series: <ColumnSeries<_DateChartData, DateTime>>[
-          ColumnSeries<_DateChartData, DateTime>(
+        series: <ColumnSeries<_ChartData, String>>[
+          ColumnSeries<_ChartData, String>(
             onPointTap: (pointInteractionDetails) {
               if (pointInteractionDetails.pointIndex != null) {
                 _showChartDialog(
@@ -269,8 +279,8 @@ class _DashboardPageState extends State<DashboardPage> {
               }
             },
             dataSource: _getWeeklyRevenueChartData(weeklyStats),
-            xValueMapper: (_DateChartData data, _) => data.x,
-            yValueMapper: (_DateChartData data, _) => data.y,
+            xValueMapper: (_ChartData data, _) => data.x,
+            yValueMapper: (_ChartData data, _) => data.y,
             dataLabelSettings: _dataLabelSettings(),
             borderRadius: BorderRadius.only(topLeft: 6.radius, topRight: 6.radius),
             color: Colors.blue,
@@ -282,7 +292,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _monthlyChart(BuildContext context, List<AggregatedStatisticsEntity> monthlyStats) {
     return _chartCard(
-      'Monthly Revenue',
+      context,
+      context.tr(I18nKeys.monthlyRevenue),
       SfCartesianChart(
         key: UniqueKey(),
         zoomPanBehavior: ZoomPanBehavior(enablePanning: true),
@@ -294,8 +305,8 @@ class _DashboardPageState extends State<DashboardPage> {
         primaryYAxis: NumericAxis(
           numberFormat: NumberFormat.compactCurrency(symbol: '\$', decimalDigits: 0),
         ),
-        series: <ColumnSeries<_StringChartData, String>>[
-          ColumnSeries<_StringChartData, String>(
+        series: <ColumnSeries<_ChartData, String>>[
+          ColumnSeries<_ChartData, String>(
             onPointTap: (pointInteractionDetails) {
               if (pointInteractionDetails.pointIndex != null) {
                 final selectMonth = monthlyStats[pointInteractionDetails.pointIndex! - filledMonth];
@@ -303,8 +314,8 @@ class _DashboardPageState extends State<DashboardPage> {
               }
             },
             dataSource: _getMonthlyRevenueChartData(monthlyStats),
-            xValueMapper: (_StringChartData data, int index) => data.x,
-            yValueMapper: (_StringChartData data, int index) => data.y,
+            xValueMapper: (_ChartData data, int index) => data.x,
+            yValueMapper: (_ChartData data, int index) => data.y,
             borderRadius: BorderRadius.only(topLeft: 6.radius, topRight: 6.radius),
             dataLabelSettings: _dataLabelSettings(),
           ),
@@ -331,7 +342,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return context.isMobile ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
   }
 
-  Widget _chartCard(String title, Widget chart) {
+  Widget _chartCard(BuildContext context, String title, Widget chart) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -348,51 +359,21 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showChartDialog(BuildContext context, dynamic stats) {
+    final isDayStatistic = stats is StatisticsEntity;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(stats is StatisticsEntity ? 'Daily Statistic' : 'Monthly Statistic'),
+          title: Text(
+            isDayStatistic
+                ? context.tr(I18nKeys.dailyStatistic)
+                : context.tr(I18nKeys.monthlyStatistic),
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: [
-                if (stats is StatisticsEntity) ...[
-                  infoRow(context, 'Date:', stats.date.toFormatDate),
-                  infoRow(context, 'Total Orders:', stats.totalOrders),
-                  infoRow(context, 'Total Revenue:', stats.totalRevenue.shortMoneyString),
-                  infoRow(context, 'Total Comments:', stats.totalFeedbacks),
-                  infoRow(context, 'Average Rating:', stats.averageRating),
-                  sbH2,
-                  Text(
-                    'Payment Method:',
-                    style: context.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  ...stats.paymentMethodSummary.entries.map(
-                    (entry) => infoRow(
-                      context,
-                      '${entry.key.capitalize}:',
-                      '${entry.value.count} - (\$${entry.value.totalAmount.shortMoneyString})',
-                    ),
-                  ),
-                ],
-                if (stats is AggregatedStatisticsEntity) ...[
-                  Text('Date: ${stats.month} - ${stats.year}'),
-                  infoRow(context, 'Date:', '${stats.month}-${stats.year}'),
-                  infoRow(context, 'Total Orders:', stats.totalOrders),
-                  infoRow(context, 'Total Revenue:', stats.totalRevenue.shortMoneyString),
-                  infoRow(context, 'Total Comments:', stats.totalFeedbacks),
-                  infoRow(context, 'Average Rating:', stats.averageRating),
-                  ...stats.paymentMethodSummary.entries.map(
-                    (entry) => infoRow(
-                      context,
-                      '${entry.key.capitalize}:',
-                      '${entry.value.count} - (\$${entry.value.totalAmount.shortMoneyString})',
-                    ),
-                  ),
-                ],
-              ],
+              children: statisticsInfoDialog(context, stats),
             ),
           ),
           actionsAlignment: MainAxisAlignment.spaceBetween,
@@ -402,28 +383,62 @@ class _DashboardPageState extends State<DashboardPage> {
                 Navigator.pop(context);
                 context.push(Paths.statistics, extra: stats);
               },
-              child: const Text('Detail'),
+              child: Text(context.tr(I18nKeys.detail)),
             ),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.tr(I18nKeys.close)),
+            ),
           ],
         );
       },
     );
   }
 
-  List<_DateChartData> _getWeeklyRevenueChartData(List<StatisticsEntity> weeklyStats) {
-    final data = weeklyStats.map((stat) => _DateChartData(stat.date, stat.totalRevenue)).toList();
+  List<Widget> statisticsInfoDialog(BuildContext context, dynamic stats) {
+    final isDayStatistic = stats is StatisticsEntity;
+
+    final firstRow =
+        isDayStatistic
+            ? infoRow(context, context.tr(I18nKeys.date), stats.date.toFormatDate)
+            : infoRow(context, context.tr(I18nKeys.month), '${stats.month} - ${stats.year}');
+    return [
+      firstRow,
+      infoRow(context, context.tr(I18nKeys.totalOrders), stats.totalOrders),
+      infoRow(
+        context,
+        context.tr(I18nKeys.totalRevenue),
+        doubleParse(stats.totalRevenue).shortMoneyString,
+      ),
+      infoRow(context, context.tr(I18nKeys.totalComments), stats.totalFeedbacks),
+      infoRow(context, context.tr(I18nKeys.averageRating), stats.averageRating.toStringAsFixed(2)),
+      sbH2,
+      Text(
+        '${context.tr(I18nKeys.paymentMethod)}:',
+        style: context.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
+      ),
+      ...stats.paymentMethodSummary.entries.map(
+        (entry) => infoRow(
+          context,
+          '${entry.key.toString().capitalize}:',
+          '${entry.value.count} - (\$${doubleParse(entry.value.totalAmount).shortMoneyString})',
+        ),
+      ),
+    ];
+  }
+
+  List<_ChartData> _getWeeklyRevenueChartData(List<StatisticsEntity> weeklyStats) {
+    final data =
+        weeklyStats.map((stat) => _ChartData(stat.date.day.toString(), stat.totalRevenue)).toList();
     while (data.length < 7) {
-      final insertDay = dateParse(data[0].x).subtract(Duration(days: 1));
-      data.insert(0, _DateChartData(insertDay, 0));
+      final insertDay = weeklyStats.first.date.subtract(Duration(days: 1));
+      data.insert(0, _ChartData(insertDay.day.toString(), 0));
       filledWeek++;
     }
     return data;
   }
 
-  List<_StringChartData> _getMonthlyRevenueChartData(
-    List<AggregatedStatisticsEntity> monthlyStats,
-  ) {
+  List<_ChartData> _getMonthlyRevenueChartData(List<AggregatedStatisticsEntity> monthlyStats) {
     monthlyStats.sort((a, b) {
       if (a.year != b.year) {
         return a.year.compareTo(b.year);
@@ -432,9 +447,9 @@ class _DashboardPageState extends State<DashboardPage> {
       }
     });
 
-    List<_StringChartData> chartData =
+    List<_ChartData> chartData =
         monthlyStats
-            .map((stat) => _StringChartData("${stat.month}-${stat.year}", stat.totalRevenue))
+            .map((stat) => _ChartData("${stat.month}-${stat.year}", stat.totalRevenue))
             .toList();
 
     if (chartData.length < 12) {
@@ -448,7 +463,7 @@ class _DashboardPageState extends State<DashboardPage> {
           earliestMonth = 12;
           earliestYear -= 1;
         }
-        chartData.insert(0, _StringChartData("$earliestMonth-$earliestYear", 0));
+        chartData.insert(0, _ChartData("$earliestMonth-$earliestYear", 0));
         filledMonth++;
       }
     }
@@ -457,16 +472,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-class _StringChartData {
-  _StringChartData(this.x, this.y);
+class _ChartData {
+  _ChartData(this.x, this.y);
 
   final String x;
-  final double y;
-}
-
-class _DateChartData {
-  _DateChartData(this.x, this.y);
-
-  final DateTime x;
   final double y;
 }

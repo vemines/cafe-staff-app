@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../widgets/active_checkbox.dart';
-import '../widgets/dialog_info_row.dart';
-import '../widgets/header_row_with_create_button.dart';
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
 import '/core/extensions/string_extensions.dart';
+import '/core/widgets/dialog.dart';
 import '/features/entities/user_entity.dart';
 import '/features/pages/admin/widgets/admin_drawer.dart';
-import '/core/widgets/dialog.dart';
 import '/injection_container.dart';
 import '../../../blocs/user/user_cubit.dart';
 import '../widgets/action_icon.dart';
+import '../widgets/active_checkbox.dart';
 import '../widgets/admin_appbar.dart';
+import '../widgets/dialog_info_row.dart';
+import '../widgets/header_row_with_create_button.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -24,7 +25,7 @@ class UserManagementPage extends StatefulWidget {
 
 class _UserManagementPageState extends State<UserManagementPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late final UserCubit _userCubit; // Instance variable
+  late final UserCubit _userCubit;
 
   @override
   void initState() {
@@ -43,7 +44,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: adminAppBar(_scaffoldKey, "User Management"),
+      appBar: adminAppBar(_scaffoldKey, context.tr(I18nKeys.userManagement)),
       drawer: const AdminDrawer(),
       body: SafeArea(
         child: BlocProvider.value(
@@ -51,29 +52,37 @@ class _UserManagementPageState extends State<UserManagementPage> {
           child: Column(
             children: [
               headerRowWithCreateButton(
-                title: "User",
+                title: context.tr(I18nKeys.userManagement),
                 onPressed: () => _showCreateOrEditUserDialog(context, null),
-                buttonText: "Create User",
+                buttonText: context.tr(I18nKeys.createUser),
                 belowTabbar: false,
               ),
               Expanded(
                 child: BlocBuilder<UserCubit, UserState>(
                   builder: (context, state) {
-                    if (state is UserLoading) {
+                    if (state is UserInitial) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is UserError) {
-                      return Center(child: Text("Error: ${state.failure.message}"));
+                      return Center(
+                        child: Text(
+                          context.tr(I18nKeys.errorWithMessage, {
+                            'message': state.failure.message ?? 'Unknown error',
+                          }),
+                        ),
+                      );
                     } else if (state is UserLoaded) {
                       final users = state.users;
-                      return ListView.builder(
-                        itemCount: users.length,
-                        itemBuilder: (context, index) {
-                          final user = users[index];
-                          return _userListTile(user, context);
-                        },
-                      );
+                      return users.isEmpty
+                          ? Center(child: Text(context.tr(I18nKeys.noUsersFound)))
+                          : ListView.builder(
+                            itemCount: users.length,
+                            itemBuilder: (context, index) {
+                              final user = users[index];
+                              return _userListTile(context, user);
+                            },
+                          );
                     }
-                    return const Center(child: Text('No users found'));
+                    return Center(child: Text(context.tr(I18nKeys.noUsersFound)));
                   },
                 ),
               ),
@@ -84,7 +93,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  ListTile _userListTile(UserEntity user, BuildContext context) {
+  ListTile _userListTile(BuildContext context, UserEntity user) {
     return ListTile(
       title: Text(user.fullname),
       subtitle: Text(user.role.upperCaseFirstLetter),
@@ -94,19 +103,19 @@ class _UserManagementPageState extends State<UserManagementPage> {
           actionIcon(
             context: context,
             icon: Icons.key,
-            text: "Change Password",
+            text: context.tr(I18nKeys.changePassword),
             onPressed: () => _showChangePasswordDialog(context, user),
           ),
           actionIcon(
             context: context,
             icon: Icons.edit,
-            text: "Edit User",
+            text: context.tr(I18nKeys.editUser),
             onPressed: () => _showCreateOrEditUserDialog(context, user),
           ),
           actionIcon(
             context: context,
             icon: Icons.delete,
-            text: "Delete User",
+            text: context.tr(I18nKeys.deleteUser),
             onPressed: () => _showDeleteUserDialog(context, user),
           ),
           activeCheckbox(
@@ -123,8 +132,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
   void _showUserDetail(BuildContext context, UserEntity user) {
     showCustomizeDialog(
       context,
-      title: 'User Detail: (${user.fullname})',
-      actionText: "Edit user",
+      title: context.tr(I18nKeys.userDetail, {'userName': user.fullname}),
+      actionText: context.tr(I18nKeys.editUser),
       content: DefaultTextStyle(
         style: context.textTheme.bodyMedium!,
         child: SingleChildScrollView(
@@ -132,13 +141,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              infoRow(context, 'Fullname:', user.fullname),
-              infoRow(context, 'UserName:', user.username),
-              infoRow(context, 'Role:', user.role),
-              infoRow(context, 'Email:', user.email),
-              infoRow(context, 'Phone Number:', user.phoneNumber),
-              infoRow(context, 'Created At:', user.createdAt.toFormatTime),
-              infoRow(context, 'Updated At:', user.updatedAt.toFormatTime),
+              infoRow(context, context.tr(I18nKeys.fullname), user.fullname),
+              infoRow(context, context.tr(I18nKeys.username), user.username),
+              infoRow(context, context.tr(I18nKeys.role), user.role),
+              infoRow(context, context.tr(I18nKeys.email), user.email),
+              infoRow(context, context.tr(I18nKeys.phoneNumber), user.phoneNumber),
+              infoRow(context, context.tr(I18nKeys.createdAt), user.createdAt.toFormatTime),
+              infoRow(context, context.tr(I18nKeys.updatedAt), user.updatedAt.toFormatTime),
             ],
           ),
         ),
@@ -160,7 +169,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
     String? role = user?.role ?? 'serve';
 
     bool isCreate = user == null;
-    final title = isCreate ? 'Create User' : 'Edit User';
+    final title = isCreate ? context.tr(I18nKeys.createUser) : context.tr(I18nKeys.editUser);
 
     showCustomizeDialog(
       context,
@@ -174,39 +183,39 @@ class _UserManagementPageState extends State<UserManagementPage> {
             children: [
               TextFormField(
                 controller: username,
-                decoration: const InputDecoration(labelText: 'Username'),
-                validator: (value) => value!.isEmpty ? "Required" : null,
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.username)),
+                validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
               ),
               TextFormField(
                 controller: fullname,
-                decoration: const InputDecoration(labelText: 'Full Name'),
-                validator: (value) => value!.isEmpty ? "Required" : null,
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.fullname)),
+                validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
               ),
               DropdownButtonFormField<String>(
                 value: role,
                 onChanged: (value) => role = value,
-                items: const [
-                  DropdownMenuItem(value: 'serve', child: Text('Serve')),
-                  DropdownMenuItem(value: 'cashier', child: Text('Cashier')),
+                items: [
+                  DropdownMenuItem(value: 'serve', child: Text(context.tr(I18nKeys.serve))),
+                  DropdownMenuItem(value: 'cashier', child: Text(context.tr(I18nKeys.cashier))),
                 ],
-                decoration: const InputDecoration(labelText: 'Role'),
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.role)),
               ),
               TextFormField(
                 controller: email,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) => value!.isEmpty ? "Required" : null,
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.email)),
+                validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
               ),
               TextFormField(
                 controller: phoneNumber,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-                validator: (value) => value!.isEmpty ? "Required" : null,
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.phoneNumber)),
+                validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
               ),
               if (isCreate)
                 TextFormField(
                   controller: password,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  validator: (value) => value!.isEmpty ? "Required" : null,
+                  decoration: InputDecoration(labelText: context.tr(I18nKeys.password)),
+                  validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
                 ),
             ],
           ),
@@ -247,20 +256,22 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
     showCustomizeDialog(
       context,
-      title: 'Change Password',
-      actionText: "Change Password",
+      title: context.tr(I18nKeys.changePassword),
+      actionText: context.tr(I18nKeys.changePassword),
       content: Form(
         key: formKey,
         child: TextFormField(
           controller: password,
           obscureText: true,
-          decoration: const InputDecoration(hintText: 'Enter new password'),
-          validator: (value) => value!.isEmpty ? "Required" : null,
+          decoration: InputDecoration(hintText: context.tr(I18nKeys.enterNewPassword)),
+          validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
         ),
       ),
       onAction: () {
-        _userCubit.updateUser(id: user.id, password: password.text);
-        Navigator.pop(context);
+        if (formKey.currentState?.validate() ?? false) {
+          _userCubit.updateUser(id: user.id, password: password.text);
+          Navigator.pop(context);
+        }
       },
     );
   }
@@ -268,9 +279,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
   void _showDeleteUserDialog(BuildContext context, UserEntity user) {
     showCustomizeDialog(
       context,
-      title: 'Confirm Delete User',
-      actionText: "Delete User",
-      content: Text('Are you sure you want to delete this user (${user.fullname})?'),
+      title: context.tr(I18nKeys.confirmDelete),
+      actionText: context.tr(I18nKeys.deleteUser),
+      content: Text(context.tr(I18nKeys.confirmDeleteUserMessage, {'userName': user.fullname})),
       onAction: () {
         _userCubit.deleteUser(id: user.id);
         Navigator.pop(context);

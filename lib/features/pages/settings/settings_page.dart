@@ -1,13 +1,16 @@
-import 'package:cafe_staff_app/features/pages/admin/widgets/admin_appbar.dart';
-import 'package:cafe_staff_app/features/pages/admin/widgets/admin_drawer.dart';
+import '../../../core/extensions/build_content_extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/paths.dart';
+import '/app/locale.dart';
+import '/app/cubits/cubits.dart';
+import '/core/widgets/dialog.dart';
+import '/configs/configs.dart';
 import '../../../injection_container.dart';
 import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/user/user_cubit.dart';
-import '/core/widgets/dialog.dart';
+import '../admin/widgets/admin_appbar.dart';
+import '../admin/widgets/admin_drawer.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -20,56 +23,74 @@ class _SettingsPageState extends State<SettingsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _password = TextEditingController();
-  String _selectedTheme = 'light';
-  String _selectedLanguage = 'en';
-  final List<String> _themeOptions = ['light', 'dark'];
-  final List<String> _themeDisplayOptions = ['Light', 'Dark'];
-  final List<String> _languageOptions = ['en', 'vi'];
-  final List<String> _languageDisplayOptions = ['English', 'Vietnamese'];
+  late String _selectedTheme;
+  late String _selectedLanguage;
 
   late AuthCubit _authCubit;
   late UserCubit _userCubit;
 
   @override
   void initState() {
+    super.initState();
     _authCubit = sl<AuthCubit>();
     _userCubit = sl<UserCubit>();
-    super.initState();
+    _selectedTheme = ThemeCubit.currentTheme;
+    _selectedLanguage = context.read<LocaleCubit>().state.languageCode;
   }
 
   @override
   void dispose() {
     _userCubit.close();
+    _password.dispose();
     super.dispose();
+  }
+
+  bool isAdmin() {
+    final state = _authCubit.state;
+    if (state is AuthAuthenticated) {
+      return state.user.role == 'admin';
+    }
+    return false;
   }
 
   void _showChangePasswordDialog() {
     showCustomizeDialog(
       context,
-      title: "Change Password",
-      actionText: "Change Password",
+      title: context.tr(I18nKeys.changePassword),
+      actionText: context.tr(I18nKeys.changePassword),
       content: TextFormField(
         controller: _password,
         obscureText: true,
-        decoration: const InputDecoration(hintText: "Enter New Password"),
+        decoration: InputDecoration(hintText: context.tr(I18nKeys.enterNewPassword)),
+        validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
       ),
       onAction: () {
-        final user = (_authCubit.state as AuthAuthenticated).user;
-        _userCubit.updateUser(id: user.id, password: _password.text);
-        Navigator.of(context).pop();
+        final state = _authCubit.state;
+        if (_password.text.length >= 6 && state is AuthAuthenticated) {
+          _userCubit.updateUser(id: state.user.id, password: _password.text);
+          Navigator.of(context).pop();
+        } else {
+          context.snakebar(context.tr(I18nKeys.passwordLengthError));
+        }
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    _selectedLanguage = sl<LocaleCubit>().state.languageCode;
+
     return Scaffold(
       key: _scaffoldKey,
       appBar:
-          (_authCubit.state as AuthAuthenticated).user.role == 'admin'
-              ? adminAppBar(_scaffoldKey, "Settings")
-              : AppBar(forceMaterialTransparency: true, title: const Text("Settings")),
-      drawer: AdminDrawer(),
+          isAdmin()
+              ? adminAppBar(_scaffoldKey, context.tr(I18nKeys.settings))
+              : AppBar(
+                forceMaterialTransparency: true,
+                title: Text(context.tr(I18nKeys.settings)),
+                leading: BackButton(),
+              ),
+      drawer: const AdminDrawer(),
       body: SafeArea(
         child: ListView(
           children: [
@@ -78,15 +99,9 @@ class _SettingsPageState extends State<SettingsPage> {
             _languageTile(context),
             const Divider(),
             ListTile(
-              title: const Text("Change Password"),
+              title: Text(context.tr(I18nKeys.changePassword)),
               leading: const Icon(Icons.key),
               onTap: _showChangePasswordDialog,
-            ),
-            const Divider(),
-            ListTile(
-              title: const Text("Logout"),
-              leading: const Icon(Icons.logout),
-              onTap: _logout,
             ),
           ],
         ),
@@ -96,31 +111,39 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _themeTile(BuildContext context) {
     return _optionTile(
-      title: "Theme",
+      context,
+      title: context.tr(I18nKeys.selectTheme),
       icon: const Icon(Icons.color_lens_outlined),
       selectedOption: _selectedTheme,
-      options: _themeOptions,
-      displayOptions: _themeDisplayOptions,
+      options: themeOptions,
+      displayOptions: themeOptions,
       onChanged: (value) {
-        if (value != null) setState(() => _selectedTheme = value);
+        if (value != null) {
+          setState(() => _selectedTheme = value);
+          sl<ThemeCubit>().toggleTheme(value);
+        }
       },
     );
   }
 
   Widget _languageTile(BuildContext context) {
     return _optionTile(
-      title: "Language",
+      context,
+      title: context.tr(I18nKeys.selectLanguage),
       icon: const Icon(Icons.language),
       selectedOption: _selectedLanguage,
-      options: _languageOptions,
-      displayOptions: _languageDisplayOptions,
+      options: supportedLocaleCode,
+      displayOptions: supportedLocaleName,
       onChanged: (value) {
-        if (value != null) setState(() => _selectedLanguage = value);
+        if (value != null) {
+          sl<LocaleCubit>().setLocale(Locale(value));
+        }
       },
     );
   }
 
-  Widget _optionTile({
+  Widget _optionTile(
+    BuildContext context, {
     required String title,
     required Icon icon,
     required String selectedOption,
@@ -134,14 +157,9 @@ class _SettingsPageState extends State<SettingsPage> {
       subtitle: Text(_getDisplayValue(selectedOption, options, displayOptions) ?? ''),
       trailing: const Icon(Icons.arrow_drop_down),
       onTap: () {
-        _showDropdownDialog(title, selectedOption, options, displayOptions, onChanged);
+        _showDropdownDialog(context, title, selectedOption, options, displayOptions, onChanged);
       },
     );
-  }
-
-  void _logout() {
-    _authCubit.logout();
-    context.pushReplacement(Paths.login);
   }
 
   String? _getDisplayValue(String value, List<String> values, List<String> displayValues) {
@@ -151,30 +169,33 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showDropdownDialog(
+    BuildContext context,
     String title,
     String? currentValue,
     List<String> values,
-    List<String> displayValues,
+    List<String> displayOptions,
     ValueChanged<String?>? onChanged,
   ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select $title'),
+          title: Text(title),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: List<Widget>.generate(values.length, (index) {
+                final value = values[index];
+                final display = displayOptions[index];
                 return ListTile(
-                  title: Text(displayValues[index]),
+                  title: Text(display),
                   onTap: () {
                     if (onChanged != null) {
-                      onChanged(values[index]);
+                      onChanged(value);
                       Navigator.of(context).pop();
                     }
                   },
-                  trailing: currentValue == values[index] ? const Icon(Icons.check) : null,
+                  trailing: currentValue == value ? const Icon(Icons.check) : null,
                 );
               }),
             ),

@@ -6,15 +6,14 @@ import '/core/usecase/usecase.dart';
 import '../../entities/sub_category_entity.dart';
 import '../../repositories/menu_repository.dart';
 
-// ignore: must_be_immutable
 class UpdateSubCategoryParams extends Equatable {
   final String id;
-  String? name;
-  String? categoryId;
-  List<String>? items;
-  bool? isActive;
+  final String? name;
+  final String? categoryId;
+  final List<String>? items;
+  final bool? isActive;
 
-  UpdateSubCategoryParams({
+  const UpdateSubCategoryParams({
     required this.id,
     this.name,
     this.categoryId,

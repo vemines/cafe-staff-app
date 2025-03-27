@@ -30,13 +30,15 @@ class OrderHistoryRemoteDataSourceImpl implements OrderHistoryRemoteDataSource {
   }) async {
     try {
       final response = await dio.get(
-        ApiEndpoints.orderHistory,
+        ApiEndpoints.orderHistories,
         queryParameters: {
           if (startDate != null) 'startDate': startDate.toIso8601String(),
           if (endDate != null) 'endDate': endDate.toIso8601String(),
           if (paymentMethod != null) OrderHistoryApiMap.paymentMethod: paymentMethod,
           'limit': limit,
           'page': page,
+          '_sort': OrderHistoryApiMap.completedAt,
+          '_order': "desc",
         },
       );
 
@@ -47,7 +49,11 @@ class OrderHistoryRemoteDataSourceImpl implements OrderHistoryRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'OrderHistoryRemoteDataSource.getAllOrderHistory');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'OrderHistoryRemoteDataSource.getAllOrderHistory',
+      );
     }
   }
 }

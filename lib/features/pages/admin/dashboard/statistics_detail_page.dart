@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
 import '/core/extensions/string_extensions.dart';
@@ -20,19 +21,22 @@ class _StatisticsDetailPageState extends State<StatisticsDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (widget.stats == null) {
-      return const Scaffold(body: Center(child: Text("No data provided.")));
+      return Scaffold(body: Center(child: Text(context.tr(I18nKeys.noDataProvided))));
     }
 
     if (widget.stats is StatisticsEntity || widget.stats is AggregatedStatisticsEntity) {
       return Scaffold(
-        appBar: AppBar(forceMaterialTransparency: true, title: const Text('Statistics Detail')),
-        body: SafeArea(child: _content(widget.stats, context)),
+        appBar: AppBar(
+          forceMaterialTransparency: true,
+          title: Text(context.tr(I18nKeys.statisticsDetail)),
+        ),
+        body: SafeArea(child: _content(context, widget.stats)),
       );
     }
-    return const Scaffold(body: Center(child: Text("Invalid data provided.")));
+    return Scaffold(body: Center(child: Text(context.tr(I18nKeys.invalidDataProvided))));
   }
 
-  Widget _content(dynamic stats, BuildContext context) {
+  Widget _content(BuildContext context, dynamic stats) {
     bool isDailyStatistic = stats is StatisticsEntity;
 
     String dateString() {
@@ -40,24 +44,34 @@ class _StatisticsDetailPageState extends State<StatisticsDetailPage> {
       return '${stats.month} - ${stats.year}';
     }
 
-    // stats as StatisticsEntity;
     return ListView(
       children: [
-        _infoTile(isDailyStatistic ? "Date" : "Month", dateString()),
-        _infoTile("Total Orders", stats.totalOrders.toString()),
-        _infoTile("Total Revenue", '\$${stats.totalRevenue.toStringAsFixed(0)}'),
-        _infoTile("Total Feedbacks", stats.totalFeedbacks.toString()),
-        _infoTile("Average Rating", stats.averageRating.toString()),
+        _infoTile(
+          context,
+          isDailyStatistic ? context.tr(I18nKeys.date) : context.tr(I18nKeys.month),
+          dateString(),
+        ),
+        _infoTile(context, context.tr(I18nKeys.totalOrders), stats.totalOrders.toString()),
+        _infoTile(
+          context,
+          context.tr(I18nKeys.totalRevenue),
+          '\$${stats.totalRevenue.toStringAsFixed(0)}',
+        ),
+        _infoTile(context, context.tr(I18nKeys.totalComments), stats.totalFeedbacks.toString()),
+        _infoTile(context, context.tr(I18nKeys.averageRating), stats.averageRating.toString()),
         const Divider(),
-        _paymentMethodsTable(stats.paymentMethodSummary),
+        _paymentMethodsTable(context, stats.paymentMethodSummary),
         const Divider(),
-        if (stats is StatisticsEntity) ...[_ordersByHourTable(stats.ordersByHour), const Divider()],
-        _bestSellingItemsTable(stats.soldItems),
+        if (stats is StatisticsEntity) ...[
+          _ordersByHourTable(context, stats.ordersByHour),
+          const Divider(),
+        ],
+        _bestSellingItemsTable(context, stats.soldItems),
       ],
     );
   }
 
-  Widget _infoTile(String title, String value) {
+  Widget _infoTile(BuildContext context, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -91,14 +105,18 @@ class _StatisticsDetailPageState extends State<StatisticsDetailPage> {
     ),
   ];
 
-  Widget _bestSellingItemsTable(Map<String, int> soldItems) {
+  Widget _bestSellingItemsTable(BuildContext context, Map<String, int> soldItems) {
     final sortedEntries = soldItems.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
     return _tableDetail(
       context,
-      'Best Selling Items',
+      context.tr(I18nKeys.bestSellingItems),
       DataTable(
-        columns: _dataColumn(context, 'Items', 'Quantity Sold'),
+        columns: _dataColumn(
+          context,
+          context.tr(I18nKeys.items),
+          context.tr(I18nKeys.quantitySold),
+        ),
         rows:
             sortedEntries
                 .map((entry) => DataRow(cells: _dataCell(context, entry.key, "${entry.value}")))
@@ -107,12 +125,16 @@ class _StatisticsDetailPageState extends State<StatisticsDetailPage> {
     );
   }
 
-  Widget _ordersByHourTable(Map<int, int> ordersByHour) {
+  Widget _ordersByHourTable(BuildContext context, Map<int, int> ordersByHour) {
     return _tableDetail(
       context,
-      'Orders by Hour',
+      context.tr(I18nKeys.ordersByHour),
       DataTable(
-        columns: _dataColumn(context, 'Hour', 'Number of Orders'),
+        columns: _dataColumn(
+          context,
+          context.tr(I18nKeys.hour),
+          context.tr(I18nKeys.numberOfOrders),
+        ),
         rows:
             ordersByHour.entries
                 .where((e) => e.value != 0)
@@ -128,12 +150,16 @@ class _StatisticsDetailPageState extends State<StatisticsDetailPage> {
 
   String _hourToString(int hour) => "${hour.toString().padLeft(2, '0')}:00";
 
-  Widget _paymentMethodsTable(Map<String, dynamic> paymentMethodSummary) {
+  Widget _paymentMethodsTable(BuildContext context, Map<String, dynamic> paymentMethodSummary) {
     return _tableDetail(
       context,
-      'Payment Methods Summary',
+      context.tr(I18nKeys.paymentMethodsSummary),
       DataTable(
-        columns: _dataColumn(context, 'Payment Method', 'Count'),
+        columns: _dataColumn(
+          context,
+          context.tr(I18nKeys.paymentMethod),
+          context.tr(I18nKeys.quantitySold),
+        ),
         rows:
             paymentMethodSummary.entries
                 .map(

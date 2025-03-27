@@ -6,21 +6,15 @@ class AppTheme {
 
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    textTheme: _poppinsTextTheme(ThemeData.light().textTheme),
+    textTheme: _appTextTheme(ThemeData.light().textTheme),
   );
 
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    textTheme: _poppinsTextTheme(ThemeData.dark().textTheme),
+    textTheme: _appTextTheme(ThemeData.dark().textTheme),
   );
 
-  static final ThemeData customTheme = ThemeData(
-    brightness: Brightness.dark,
-    colorSchemeSeed: Colors.green,
-    textTheme: _poppinsTextTheme(ThemeData.dark().textTheme),
-  );
-
-  static TextTheme _poppinsTextTheme(TextTheme base) {
-    return GoogleFonts.poppinsTextTheme(base);
+  static TextTheme _appTextTheme(TextTheme base) {
+    return GoogleFonts.robotoTextTheme(base);
   }
 }

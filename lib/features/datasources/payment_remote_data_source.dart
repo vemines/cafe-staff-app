@@ -29,7 +29,11 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'PaymentRemoteDataSource.getAllPayments');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'PaymentRemoteDataSource.getAllPayments',
+      );
     }
   }
 
@@ -44,7 +48,11 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'PaymentRemoteDataSource.createPayment');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'PaymentRemoteDataSource.createPayment',
+      );
     }
   }
 
@@ -59,7 +67,11 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'PaymentRemoteDataSource.updatePayment');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'PaymentRemoteDataSource.updatePayment',
+      );
     }
   }
 
@@ -70,7 +82,11 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'PaymentRemoteDataSource.deletePayment');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'PaymentRemoteDataSource.deletePayment',
+      );
     }
   }
 }

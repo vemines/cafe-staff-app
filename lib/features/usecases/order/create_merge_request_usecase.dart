@@ -8,7 +8,7 @@ import '../../repositories/order_repository.dart';
 class CreateMergeRequestParams extends Equatable {
   final String sourceTableId;
   final String targetTableId;
-  final List<String> splitItemIds;
+  final Map<String, int> splitItemIds;
 
   const CreateMergeRequestParams({
     required this.sourceTableId,

@@ -13,7 +13,6 @@ class OrderHistoryInitial extends OrderHistoryState {}
 
 class OrderHistoryLoading extends OrderHistoryState {}
 
-//Loading more
 class OrderHistoryLoadingMore extends OrderHistoryState {
   const OrderHistoryLoadingMore({required super.orderHistory});
 }

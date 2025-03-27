@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '/app/locale.dart';
 import '../../../../app/paths.dart';
 import '../../../../injection_container.dart';
 import '../../../blocs/auth/auth_cubit.dart';
 
-class StaffDrawer extends StatelessWidget {
+class StaffDrawer extends StatefulWidget {
   const StaffDrawer({super.key});
 
   @override
+  State<StaffDrawer> createState() => _StaffDrawerState();
+}
+
+class _StaffDrawerState extends State<StaffDrawer> {
+  @override
   Widget build(BuildContext context) {
-    // Use BlocBuilder to get the current AuthState
     return BlocBuilder<AuthCubit, AuthState>(
       bloc: sl<AuthCubit>(),
       builder: (context, state) {
@@ -34,24 +39,21 @@ class StaffDrawer extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.history),
-                title: const Text('Order History'),
-                onTap: () {
-                  context.push('/staff_order_history');
-                },
+                title: Text(context.tr(I18nKeys.orderHistory)),
+                onTap: () => context.push(Paths.staffOrderHistory),
               ),
               ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Settings'),
-                onTap: () {
-                  context.push('/settings');
-                },
+                title: Text(context.tr(I18nKeys.settings)),
+                onTap: () => context.push('/settings'),
               ),
               ListTile(
                 leading: const Icon(Icons.logout),
-                title: const Text('Logout'),
-                onTap: () {
-                  context.read<AuthCubit>().logout();
-                  context.pushReplacement(Paths.login);
+                title: Text(context.tr(I18nKeys.logout)),
+                onTap: () async {
+                  await sl<AuthCubit>().logout();
+
+                  if (context.mounted) context.pushReplacement(Paths.login);
                 },
               ),
             ],

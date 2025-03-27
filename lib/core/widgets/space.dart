@@ -25,3 +25,4 @@ EdgeInsets get eiAll2 => const EdgeInsets.all(8);
 EdgeInsets get eiAll3 => const EdgeInsets.all(12);
 EdgeInsets get eiAll4 => const EdgeInsets.all(16);
 EdgeInsets get eiAll5 => const EdgeInsets.all(20);
+EdgeInsets get eiAll6 => const EdgeInsets.all(24);

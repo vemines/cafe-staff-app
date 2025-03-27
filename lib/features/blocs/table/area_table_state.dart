@@ -9,8 +9,6 @@ abstract class AreaState extends Equatable {
 
 class AreaInitial extends AreaState {}
 
-class AreaLoading extends AreaState {}
-
 class AreaLoaded extends AreaState {
   final List<AreaEntity> areas;
 
@@ -19,26 +17,6 @@ class AreaLoaded extends AreaState {
   @override
   List<Object> get props => [areas];
 }
-
-class AreaCreated extends AreaState {
-  final AreaEntity area;
-
-  const AreaCreated({required this.area});
-
-  @override
-  List<Object> get props => [area];
-}
-
-class AreaUpdated extends AreaState {
-  final AreaEntity area;
-
-  const AreaUpdated({required this.area});
-
-  @override
-  List<Object> get props => [area];
-}
-
-class AreaDeleted extends AreaState {}
 
 class AreaError extends AreaState {
   final Failure failure;

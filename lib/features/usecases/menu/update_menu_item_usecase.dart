@@ -6,15 +6,14 @@ import '/core/usecase/usecase.dart';
 import '../../entities/menu_item_entity.dart';
 import '../../repositories/menu_repository.dart';
 
-// ignore: must_be_immutable
 class UpdateMenuItemParams extends Equatable {
   final String id;
-  String? name;
-  String? subCategoryId;
-  double? price;
-  bool? isActive;
+  final String? name;
+  final String? subCategoryId;
+  final double? price;
+  final bool? isActive;
 
-  UpdateMenuItemParams({
+  const UpdateMenuItemParams({
     required this.id,
     this.name,
     this.subCategoryId,

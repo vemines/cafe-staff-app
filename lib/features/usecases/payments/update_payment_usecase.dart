@@ -10,7 +10,6 @@ class UpdatePaymentParams extends Equatable {
   final String id;
   final String name;
   final bool isActive;
-  // Add other fields as necessary
 
   const UpdatePaymentParams({required this.id, required this.name, required this.isActive});
 

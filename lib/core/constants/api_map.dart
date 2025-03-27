@@ -90,7 +90,6 @@ class FeedbackApiMap {
   static const String timestamp = 'timestamp';
   static const String startDate = 'startDate';
   static const String endDate = 'endDate';
-  static const String lastId = 'lastId';
 }
 
 class StatisticsApiMap {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
 import '/core/extensions/num_extensions.dart';
@@ -30,7 +31,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   String? _filterPaymentMethod;
   late final OrderHistoryCubit _orderHistoryCubit;
   late final PaymentCubit _paymentCubit;
-  List<String?> paymentMethods = [null];
+  List<String?> paymentMethods = [null]; // null represents 'All'
 
   @override
   void initState() {
@@ -55,46 +56,59 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: adminAppBar(_scaffoldKey, 'Order History'),
+        appBar: adminAppBar(_scaffoldKey, context.tr(I18nKeys.orderHistory)),
         drawer: const AdminDrawer(),
-        body: Column(
-          children: [
-            _filterRow(context),
-            BlocListener<PaymentCubit, PaymentState>(
-              bloc: _paymentCubit,
-              listener: (context, state) {
-                if (state is PaymentLoaded) {
-                  setState(() {
-                    paymentMethods = [null, ...state.payments.map((e) => e.name)];
-                  });
-                }
-              },
-              child: SizedBox.shrink(),
-            ),
-            Expanded(
-              child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
-                bloc: _orderHistoryCubit,
-                builder: (context, state) {
-                  if (state is OrderHistoryLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is OrderHistoryError) {
-                    return Center(child: Text('Error: ${state.failure.message}'));
-                  } else if (state is OrderHistoryLoaded || state is OrderHistoryLoadingMore) {
-                    final orderHistory = state.orderHistory;
-                    final hasMore = state.hasMore;
-                    return _listOrderHistory(orderHistory: orderHistory, hasMore: hasMore);
+        body: SafeArea(
+          child: Column(
+            children: [
+              _filterRow(context),
+              BlocListener<PaymentCubit, PaymentState>(
+                bloc: _paymentCubit,
+                listener: (context, state) {
+                  if (state is PaymentLoaded) {
+                    setState(() {
+                      paymentMethods = [null, ...state.payments.map((e) => e.name)];
+                    });
                   }
-                  return const Center(child: Text('No orders found.'));
                 },
+                child: SizedBox.shrink(),
               ),
-            ),
-          ],
+              Expanded(
+                child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
+                  bloc: _orderHistoryCubit,
+                  builder: (context, state) {
+                    if (state is OrderHistoryLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is OrderHistoryError) {
+                      return Center(
+                        child: Text(
+                          context.tr(I18nKeys.errorWithMessage, {
+                            'message': state.failure.message ?? 'Unknown error',
+                          }),
+                        ),
+                      );
+                    } else if (state is OrderHistoryLoaded || state is OrderHistoryLoadingMore) {
+                      final orderHistory = state.orderHistory;
+                      final hasMore = state.hasMore;
+                      return _listOrderHistory(
+                        context,
+                        orderHistory: orderHistory,
+                        hasMore: hasMore,
+                      );
+                    }
+                    return Center(child: Text(context.tr(I18nKeys.noOrdersFound)));
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _listOrderHistory({
+  Widget _listOrderHistory(
+    BuildContext context, {
     required List<OrderHistoryEntity> orderHistory,
     required bool hasMore,
   }) {
@@ -172,7 +186,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           ),
           selectButton(
             onPressed: () => _showPaymentMethodDialog(context),
-            text: _filterPaymentMethod ?? "Select Payment Methods",
+            text: _filterPaymentMethod ?? context.tr(I18nKeys.selectPaymentMethods),
             minWidth: 220,
           ),
         ],
@@ -183,16 +197,17 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   void _showPaymentMethodDialog(BuildContext context) {
     showCustomizeDialog(
       context,
-      title: 'Select Payment Method',
+      title: context.tr(I18nKeys.selectPaymentMethods),
       showAction: false,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: List<Widget>.generate(paymentMethods.length, (index) {
+            final paymentName = paymentMethods[index];
             return ListTile(
-              title: Text(paymentMethods[index] ?? "All Payment Methods"),
+              title: Text(paymentName ?? context.tr(I18nKeys.allPaymentMethods)),
               onTap: () {
-                setState(() => _filterPaymentMethod = paymentMethods[index]);
+                setState(() => _filterPaymentMethod = paymentName);
                 _orderHistoryCubit.getAllOrderHistory(
                   startDate: _startDate,
                   endDate: _endDate,
@@ -200,8 +215,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 );
                 Navigator.of(context).pop();
               },
-              trailing:
-                  _filterPaymentMethod == paymentMethods[index] ? const Icon(Icons.check) : null,
+              trailing: _filterPaymentMethod == paymentName ? const Icon(Icons.check) : null,
             );
           }),
         ),
@@ -209,10 +223,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  void _showOrderDetails(BuildContext context, OrderHistoryEntity order) {
+  void _showOrderDetails(BuildContext context, OrderHistoryEntity orderHistory) {
     showCustomizeDialog(
       context,
-      title: "Order Detail (${order.orderId})",
+      title: context.tr(I18nKeys.orderDetail, {'orderId': orderHistory.id}),
       showAction: false,
       content: DefaultTextStyle(
         style: context.textTheme.bodyMedium!,
@@ -221,16 +235,18 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Table: ${order.tableName}'),
-              Text('Payment Method: ${order.paymentMethod}'),
-              Text('Created At: ${order.createdAt.toFormatTime}'),
-              Text('Served At: ${order.servedAt.toFormatTime}'),
-              Text('Complete By: ${order.cashierName}'),
-              Text('Completed At: ${order.completedAt.toFormatTime}'),
-              Text('Total Price: \$${order.totalPrice.shortMoneyString}'),
+              Text('${context.tr(I18nKeys.table)}: ${orderHistory.tableName}'),
+              Text('${context.tr(I18nKeys.paymentMethod)}: ${orderHistory.paymentMethod}'),
+              Text('${context.tr(I18nKeys.createdAt)}: ${orderHistory.createdAt.toFormatTime}'),
+              Text('${context.tr(I18nKeys.servedAt)}: ${orderHistory.servedAt.toFormatTime}'),
+              Text('${context.tr(I18nKeys.completeBy)}: ${orderHistory.cashierName}'),
+              Text('${context.tr(I18nKeys.completedAt)}: ${orderHistory.completedAt.toFormatTime}'),
+              Text(
+                '${context.tr(I18nKeys.totalPrice)}: \$${orderHistory.totalPrice.shortMoneyString}',
+              ),
               sbH2,
-              Text('Items:', style: context.bodyLargeBold),
-              ...order.orderItems.map(
+              Text('${context.tr(I18nKeys.items)}:', style: context.bodyLargeBold),
+              ...orderHistory.orderItems.map(
                 (item) => Text(
                   '${item.menuItem.name} x ${item.quantity} - \$${(item.price * item.quantity).shortMoneyString}',
                 ),

@@ -28,7 +28,6 @@ class TableCubit extends Cubit<TableState> {
   }) : super(TableInitial());
 
   Future<void> getAllTables() async {
-    emit(TableLoading());
     final result = await getAllTablesUseCase(NoParams());
     result.fold(
       (failure) {

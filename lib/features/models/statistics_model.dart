@@ -18,7 +18,6 @@ class StatisticsModel extends StatisticsEntity {
   });
 
   factory StatisticsModel.fromJson(Map<String, dynamic> json) {
-    // print(json[StatisticsApiMap.paymentMethodSummary]);
     return StatisticsModel(
       id: json[StatisticsApiMap.id] as String,
       date: dateParse(json[StatisticsApiMap.date]),
@@ -26,10 +25,7 @@ class StatisticsModel extends StatisticsEntity {
       totalRevenue: doubleParse(json[StatisticsApiMap.totalRevenue]),
       paymentMethodSummary:
           (json[StatisticsApiMap.paymentMethodSummary] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(
-              key, // This is the paymentName
-              PaymentStatisticModel.fromJson(value),
-            ),
+            (key, value) => MapEntry(key, PaymentStatisticModel.fromJson(value)),
           ) ??
           {},
       ordersByHour:

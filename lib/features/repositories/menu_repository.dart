@@ -245,16 +245,11 @@ class MenuRepositoryImpl implements MenuRepository {
       try {
         final response = await remoteDataSource.getCompleteMenu();
 
-        // Convert Model to Entity
-        final categories = response.categories.map((model) => model).toList();
-        final subCategories = response.subCategories.map((model) => model).toList();
-        final menuItems = response.menuItems.map((model) => model).toList();
-
         return Right(
           GetCompleteMenuResponse(
-            categories: categories,
-            subCategories: subCategories,
-            menuItems: menuItems,
+            categories: response.categories,
+            subCategories: response.subCategories,
+            menuItems: response.menuItems,
           ),
         );
       } catch (e) {

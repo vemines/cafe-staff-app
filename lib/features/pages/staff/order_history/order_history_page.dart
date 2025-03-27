@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '/core/extensions/num_extensions.dart';
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
+import '/core/extensions/num_extensions.dart';
 import '/core/widgets/dialog.dart';
 import '/core/widgets/space.dart';
+import '/injection_container.dart';
 import '../../../blocs/order_history/order_history_cubit.dart';
 import '../../../entities/order_history_entity.dart';
-import '/injection_container.dart';
 
 class StaffOrderHistoryPage extends StatefulWidget {
   const StaffOrderHistoryPage({super.key});
@@ -23,42 +24,58 @@ class _StaffOrderHistoryPageState extends State<StaffOrderHistoryPage> {
   @override
   void initState() {
     super.initState();
-    _orderHistoryCubit = sl<OrderHistoryCubit>(); // Get from GetIt
-    _orderHistoryCubit.getAllOrderHistory(); // Fetch initial data
+    _orderHistoryCubit = sl<OrderHistoryCubit>();
+    _orderHistoryCubit.getAllOrderHistory();
   }
 
   @override
   void dispose() {
-    _orderHistoryCubit.close(); // Dispose of the Cubit
+    _orderHistoryCubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(forceMaterialTransparency: true, title: const Text('Order History')),
-      body: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
-        bloc: _orderHistoryCubit, // Use the local instance
-        builder: (context, state) {
-          if (state is OrderHistoryLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is OrderHistoryError) {
-            return Center(child: Text('Error: ${state.failure.message}'));
-          } else if (state is OrderHistoryLoaded || state is OrderHistoryLoadingMore) {
-            final orders = state.orderHistory;
-            final hasMore = state.hasMore;
-            return _orderHistoryList(orderHistory: orders, hasMore: hasMore);
-          }
-          return const Center(child: Text('No orders found.'));
-        },
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        title: Text(context.tr(I18nKeys.orderHistory)),
+      ),
+      body: SafeArea(
+        child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
+          bloc: _orderHistoryCubit,
+          builder: (context, state) {
+            if (state is OrderHistoryLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is OrderHistoryError) {
+              return Center(
+                child: Text(
+                  context.tr(I18nKeys.errorWithMessage, {
+                    'message': state.failure.message ?? 'Unknown error',
+                  }),
+                ),
+              );
+            } else if (state is OrderHistoryLoaded || state is OrderHistoryLoadingMore) {
+              final orderHistory = state.orderHistory;
+              final hasMore = state.hasMore;
+              return _orderHistoryList(context, orderHistory: orderHistory, hasMore: hasMore);
+            }
+            return Center(child: Text(context.tr(I18nKeys.noOrdersFound)));
+          },
+        ),
       ),
     );
   }
 
-  Widget _orderHistoryList({
+  Widget _orderHistoryList(
+    BuildContext context, {
     required List<OrderHistoryEntity> orderHistory,
     required bool hasMore,
   }) {
+    if (orderHistory.isEmpty && !hasMore) {
+      return Center(child: Text(context.tr(I18nKeys.noOrdersFound)));
+    }
+
     return ListView.builder(
       itemCount: orderHistory.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -78,7 +95,9 @@ class _StaffOrderHistoryPageState extends State<StaffOrderHistoryPage> {
         } else {
           if (!hasMore) return const SizedBox.shrink();
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _orderHistoryCubit.getAllOrderHistory(isLoadMore: true);
+            if (mounted && _orderHistoryCubit.isLoadMore == false) {
+              _orderHistoryCubit.getAllOrderHistory(isLoadMore: true);
+            }
           });
 
           return const Center(child: CircularProgressIndicator());
@@ -87,10 +106,10 @@ class _StaffOrderHistoryPageState extends State<StaffOrderHistoryPage> {
     );
   }
 
-  void _showOrderDetails(BuildContext context, OrderHistoryEntity order) {
+  void _showOrderDetails(BuildContext context, OrderHistoryEntity orderHistory) {
     showCustomizeDialog(
       context,
-      title: "Order Detail (${order.orderId})",
+      title: context.tr(I18nKeys.orderDetail, {'orderId': orderHistory.id}),
       showAction: false,
       content: DefaultTextStyle(
         style: context.textTheme.bodyMedium!,
@@ -99,16 +118,18 @@ class _StaffOrderHistoryPageState extends State<StaffOrderHistoryPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Table: ${order.tableName}'),
-              Text('Payment Method: ${order.paymentMethod}'),
-              Text('Created At: ${order.createdAt.toFormatTime}'),
-              Text('Served At: ${order.servedAt.toFormatTime}'),
-              Text('Complete By: ${order.cashierName}'),
-              Text('Completed At: ${order.completedAt.toFormatTime}'),
-              Text('Total Price: \$${order.totalPrice.shortMoneyString}'),
+              Text('${context.tr(I18nKeys.table)}: ${orderHistory.tableName}'),
+              Text('${context.tr(I18nKeys.paymentMethod)}: ${orderHistory.paymentMethod}'),
+              Text('${context.tr(I18nKeys.createdAt)}: ${orderHistory.createdAt.toFormatTime}'),
+              Text('${context.tr(I18nKeys.servedAt)}: ${orderHistory.servedAt.toFormatTime}'),
+              Text('${context.tr(I18nKeys.completeBy)}: ${orderHistory.cashierName}'),
+              Text('${context.tr(I18nKeys.completedAt)}: ${orderHistory.completedAt.toFormatTime}'),
+              Text(
+                '${context.tr(I18nKeys.totalPrice)}: \$${orderHistory.totalPrice.shortMoneyString}',
+              ),
               sbH2,
-              Text('Items:', style: context.bodyLargeBold),
-              ...order.orderItems.map(
+              Text('${context.tr(I18nKeys.items)}:', style: context.bodyLargeBold),
+              ...orderHistory.orderItems.map(
                 (item) => Text(
                   '${item.menuItem.name} x ${item.quantity} - \$${(item.price * item.quantity).shortMoneyString}',
                 ),

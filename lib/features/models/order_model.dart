@@ -20,11 +20,10 @@ class OrderModel extends OrderEntity {
     return OrderModel(
       id: json[OrderApiMap.id] as String,
       tableId: json[OrderApiMap.tableId] as String,
-      orderItems: [],
-      // orderItems:
-      //     (json[OrderApiMap.orderItems] as List)
-      //         .map((item) => OrderItemModel.fromJson(item))
-      //         .toList(),
+      orderItems:
+          (json[OrderApiMap.orderItems] as List)
+              .map((item) => OrderItemModel.fromJson(item))
+              .toList(),
       createdBy: json[OrderApiMap.createdBy] as String?,
       createdAt: dateParseNullAble(json[OrderApiMap.createdAt]),
       servedBy: json[OrderApiMap.servedBy] as String?,

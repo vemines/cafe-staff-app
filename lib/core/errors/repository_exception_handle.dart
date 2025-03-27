@@ -1,4 +1,3 @@
-// --- FILE: lib/core/errors/repository_exception_handle.dart ---
 part of 'exceptions.dart';
 
 Failure handleRepositoryException(Object e) {

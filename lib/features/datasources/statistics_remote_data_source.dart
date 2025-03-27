@@ -6,11 +6,9 @@ import '../models/aggregated_statistics_model.dart';
 import '../models/statistics_model.dart';
 
 abstract class StatisticsRemoteDataSource {
-  Future<List<StatisticsModel>> getAllStatistics();
   Future<List<AggregatedStatisticsModel>> getAllAggregatedStatistics();
   Future<StatisticsModel> getTodayStatistics();
   Future<List<StatisticsModel>> getThisWeekStatistics();
-  Future<List<AggregatedStatisticsModel>> getYearlyStatistics();
 }
 
 class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
@@ -28,7 +26,11 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'StatisticsRemoteDataSource.getAllAggregatedStatistics');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'StatisticsRemoteDataSource.getAllAggregatedStatistics',
+      );
     }
   }
 
@@ -40,21 +42,11 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'StatisticsRemoteDataSource.getTodayStatistics');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
-  Future<List<AggregatedStatisticsModel>> getYearlyStatistics() async {
-    try {
-      final response = await dio.get(ApiEndpoints.aggregatedStatistics);
-      return (response.data as List)
-          .map((item) => AggregatedStatisticsModel.fromJson(item))
-          .toList();
-    } on DioException catch (e, s) {
-      handleDioException(e, s, 'StatisticsRemoteDataSource.getYearlyStatistics');
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'StatisticsRemoteDataSource.getTodayStatistics',
+      );
     }
   }
 
@@ -71,19 +63,11 @@ class StatisticsRemoteDataSourceImpl implements StatisticsRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'StatisticsRemoteDataSource.getThisWeekStatistics');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
-    }
-  }
-
-  @override
-  Future<List<StatisticsModel>> getAllStatistics() async {
-    try {
-      final response = await dio.get(ApiEndpoints.statistics);
-      return (response.data as List).map((item) => StatisticsModel.fromJson(item)).toList();
-    } on DioException catch (e, s) {
-      handleDioException(e, s, 'StatisticsRemoteDataSource.getAllStatistics');
-    } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'StatisticsRemoteDataSource.getThisWeekStatistics',
+      );
     }
   }
 }

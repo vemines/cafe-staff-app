@@ -25,14 +25,18 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
   Future<FeedbackModel> createFeedback({required int rating, required String comment}) async {
     try {
       final response = await dio.post(
-        ApiEndpoints.feedback,
+        ApiEndpoints.feedbacks,
         data: {FeedbackApiMap.rating: rating, FeedbackApiMap.comment: comment},
       );
       return FeedbackModel.fromJson(response.data);
     } on DioException catch (e, s) {
       handleDioException(e, s, 'FeedbackRemoteDataSource.createFeedback');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'FeedbackRemoteDataSource.createFeedback',
+      );
     }
   }
 
@@ -46,7 +50,7 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
   }) async {
     try {
       final response = await dio.get(
-        ApiEndpoints.feedback,
+        ApiEndpoints.feedbacks,
         queryParameters: {
           if (rating != null) FeedbackApiMap.rating: rating,
           if (startDate != null) FeedbackApiMap.startDate: startDate.toIso8601String(),
@@ -62,7 +66,11 @@ class FeedbackRemoteDataSourceImpl implements FeedbackRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'FeedbackRemoteDataSource.getAllFeedback');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'FeedbackRemoteDataSource.getAllFeedback',
+      );
     }
   }
 }

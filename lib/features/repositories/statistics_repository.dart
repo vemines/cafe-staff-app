@@ -9,7 +9,6 @@ import '../entities/aggregated_statistics_entity.dart';
 import '../entities/statistics_entity.dart';
 
 abstract class StatisticsRepository {
-  Future<Either<Failure, List<StatisticsEntity>>> getAllStatistics(NoParams params);
   Future<Either<Failure, List<AggregatedStatisticsEntity>>> getAllAggregatedStatistics(
     NoParams params,
   );
@@ -22,19 +21,6 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
   final NetworkInfo networkInfo;
 
   StatisticsRepositoryImpl({required this.remoteDataSource, required this.networkInfo});
-  @override
-  Future<Either<Failure, List<StatisticsEntity>>> getAllStatistics(NoParams params) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final remoteStatistics = await remoteDataSource.getAllStatistics();
-        return Right(remoteStatistics);
-      } catch (e) {
-        return Left(handleRepositoryException(e));
-      }
-    } else {
-      return const Left(NoInternetFailure());
-    }
-  }
 
   @override
   Future<Either<Failure, List<AggregatedStatisticsEntity>>> getAllAggregatedStatistics(

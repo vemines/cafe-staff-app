@@ -1,7 +1,9 @@
+import '../../../../core/extensions/build_content_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '/app/locale.dart';
 import '/core/widgets/dialog.dart';
 import '/core/widgets/space.dart';
 import '/features/blocs/table/area_table_cubit.dart';
@@ -67,50 +69,59 @@ class _TableManagementPageState extends State<TableManagementPage>
       key: _scaffoldKey,
       appBar: adminAppBar(
         _scaffoldKey,
-        'Table Management',
+        context.tr(I18nKeys.tableManagement),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: 'Areas'), Tab(text: 'Tables')],
+          tabs: [Tab(text: context.tr(I18nKeys.areas)), Tab(text: context.tr(I18nKeys.tables))],
         ),
       ),
       drawer: const AdminDrawer(),
       body: SafeArea(
-        child: TabBarView(controller: _tabController, children: [_areaTab(), _tableTab()]),
+        child: TabBarView(
+          controller: _tabController,
+          children: [_areaTab(context), _tableTab(context)],
+        ),
       ),
     );
   }
 
-  Widget _areaTab() {
+  Widget _areaTab(BuildContext context) {
     return BlocProvider.value(
       value: _areaCubit,
       child: Column(
         children: [
           headerRowWithCreateButton(
-            title: "Areas",
+            title: context.tr(I18nKeys.areas),
             onPressed: () => _showCreateOrEditAreaDialog(context, null),
-            buttonText: 'Create Area',
+            buttonText: context.tr(I18nKeys.createArea),
           ),
           Expanded(
             child: BlocBuilder<AreaCubit, AreaState>(
               builder: (context, state) {
-                if (state is AreaLoading) {
+                if (state is AreaInitial) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is AreaError) {
-                  return Center(child: Text('Error: ${state.failure.message}'));
+                  return Center(
+                    child: Text(
+                      context.tr(I18nKeys.errorWithMessage, {
+                        'message': state.failure.message ?? 'Unknown error',
+                      }),
+                    ),
+                  );
                 } else if (state is AreaLoaded) {
                   final areas = state.areas;
 
                   return areas.isEmpty
-                      ? Center(child: Text("No Area for Display"))
+                      ? Center(child: Text(context.tr(I18nKeys.noAreaForDisplay)))
                       : ListView.builder(
                         itemCount: areas.length,
                         itemBuilder: (context, index) {
                           final area = areas[index];
-                          return _areaListTile(area);
+                          return _areaListTile(context, area);
                         },
                       );
                 } else {
-                  return const Center(child: Text('No data.'));
+                  return Center(child: Text(context.tr(I18nKeys.noData)));
                 }
               },
             ),
@@ -120,39 +131,47 @@ class _TableManagementPageState extends State<TableManagementPage>
     );
   }
 
-  Widget _tableTab() {
+  Widget _tableTab(BuildContext context) {
     return BlocProvider.value(
       value: _tableCubit,
       child: Column(
         children: [
           headerRowWithCreateButton(
-            title: "Table",
+            title: context.tr(I18nKeys.tables),
             onPressed: () => _showCreateOrEditTableDialog(context, null),
-            buttonText: "Create Table",
+            buttonText: context.tr(I18nKeys.createTable),
           ),
           sbH2,
           selectButton(
-            onPressed: _showSelectAreaDialog,
-            text: _selectedArea?.name ?? 'Select area',
+            onPressed: () => _showSelectAreaDialog(context),
+            text: _selectedArea?.name ?? context.tr(I18nKeys.selectArea),
           ),
           Expanded(
             child: BlocBuilder<TableCubit, TableState>(
               builder: (context, state) {
-                if (state is TableLoading) {
+                if (state is TableInitial) {
                   return const SizedBox.shrink();
                 } else if (state is TableError) {
-                  return Center(child: Text('Error: ${state.failure.message}'));
+                  return Center(
+                    child: Text(
+                      context.tr(I18nKeys.errorWithMessage, {
+                        'message': state.failure.message ?? 'Unknown error',
+                      }),
+                    ),
+                  );
                 } else if (state is TableLoaded) {
                   final tables = state.tables;
-                  return ListView.builder(
-                    itemCount: tables.length,
-                    itemBuilder: (context, index) {
-                      final table = tables[index];
-                      return _tableListTile(table);
-                    },
-                  );
+                  return tables.isEmpty
+                      ? Center(child: Text(context.tr(I18nKeys.noTablesFoundForArea)))
+                      : ListView.builder(
+                        itemCount: tables.length,
+                        itemBuilder: (context, index) {
+                          final table = tables[index];
+                          return _tableListTile(context, table);
+                        },
+                      );
                 } else {
-                  return const Center(child: Text('No tables found for the selected area.'));
+                  return Center(child: Text(context.tr(I18nKeys.noTablesFoundForArea)));
                 }
               },
             ),
@@ -162,7 +181,7 @@ class _TableManagementPageState extends State<TableManagementPage>
     );
   }
 
-  ListTile _tableListTile(TableEntity table) {
+  ListTile _tableListTile(BuildContext context, TableEntity table) {
     return ListTile(
       title: Text(table.name),
       trailing: Row(
@@ -171,13 +190,13 @@ class _TableManagementPageState extends State<TableManagementPage>
           actionIcon(
             context: context,
             icon: Icons.edit,
-            text: "Edit Table",
+            text: context.tr(I18nKeys.editTable),
             onPressed: () => _showCreateOrEditTableDialog(context, table),
           ),
           actionIcon(
             context: context,
             icon: Icons.delete,
-            text: "Delete Table",
+            text: context.tr(I18nKeys.deleteTable),
             onPressed: () => _showDeleteTableDialog(context, table),
           ),
         ],
@@ -185,7 +204,7 @@ class _TableManagementPageState extends State<TableManagementPage>
     );
   }
 
-  ListTile _areaListTile(AreaEntity area) {
+  ListTile _areaListTile(BuildContext context, AreaEntity area) {
     return ListTile(
       title: Text(area.name),
       trailing: Row(
@@ -194,13 +213,13 @@ class _TableManagementPageState extends State<TableManagementPage>
           actionIcon(
             context: context,
             icon: Icons.edit,
-            text: "Edit Area",
+            text: context.tr(I18nKeys.editArea),
             onPressed: () => _showCreateOrEditAreaDialog(context, area),
           ),
           actionIcon(
             context: context,
             icon: Icons.delete,
-            text: "Delete Area",
+            text: context.tr(I18nKeys.deleteArea),
             onPressed: () => _showDeleteAreaDialog(context, area),
           ),
         ],
@@ -219,7 +238,7 @@ class _TableManagementPageState extends State<TableManagementPage>
     final name = TextEditingController(text: area?.name);
 
     bool isCreate = area == null;
-    String title = isCreate ? 'Create Area' : 'Edit Area';
+    String title = isCreate ? context.tr(I18nKeys.createArea) : context.tr(I18nKeys.editArea);
 
     showCustomizeDialog(
       context,
@@ -229,8 +248,8 @@ class _TableManagementPageState extends State<TableManagementPage>
         key: formKey,
         child: TextFormField(
           controller: name,
-          decoration: const InputDecoration(hintText: 'Enter area name'),
-          validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
+          decoration: InputDecoration(hintText: context.tr(I18nKeys.enterAreaName)),
+          validator: (value) => value!.isEmpty ? context.tr(I18nKeys.pleaseEnterName) : null,
         ),
       ),
       onAction: () {
@@ -249,9 +268,9 @@ class _TableManagementPageState extends State<TableManagementPage>
   Future<void> _showDeleteAreaDialog(BuildContext context, AreaEntity area) async {
     showCustomizeDialog(
       context,
-      title: 'Confirm Delete Area',
-      actionText: "Delete Area",
-      content: Text('Are you sure you want to delete this area ${area.name}?'),
+      title: context.tr(I18nKeys.confirmDelete),
+      actionText: context.tr(I18nKeys.deleteArea),
+      content: Text(context.tr(I18nKeys.confirmDeleteAreaMessage, {'areaName': area.name})),
       onAction: () {
         _areaCubit.deleteArea(id: area.id);
         context.pop();
@@ -264,7 +283,7 @@ class _TableManagementPageState extends State<TableManagementPage>
     final name = TextEditingController(text: table?.name);
 
     bool isCreate = table == null;
-    String title = isCreate ? 'Create Table' : 'Edit Table';
+    String title = isCreate ? context.tr(I18nKeys.createTable) : context.tr(I18nKeys.editTable);
 
     final String initialAreaId = _selectedArea?.id ?? '';
 
@@ -279,8 +298,8 @@ class _TableManagementPageState extends State<TableManagementPage>
           children: [
             TextFormField(
               controller: name,
-              decoration: const InputDecoration(hintText: 'Enter table name'),
-              validator: (value) => value!.isEmpty ? "Required" : null,
+              decoration: InputDecoration(hintText: context.tr(I18nKeys.enterTableName)),
+              validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
             ),
           ],
         ),
@@ -288,21 +307,23 @@ class _TableManagementPageState extends State<TableManagementPage>
       onAction: () {
         if (formKey.currentState!.validate() && initialAreaId.isNotEmpty) {
           if (isCreate) {
-            _tableCubit.createTable(tableName: name.text, status: 'pending', areaId: initialAreaId);
+            _tableCubit.createTable(
+              tableName: name.text,
+              status: 'completed',
+              areaId: initialAreaId,
+            );
           } else {
             _tableCubit.updateTable(
               id: table.id,
               tableName: name.text,
-              status: 'pending',
+              status: table.status.name,
               areaId: initialAreaId,
             );
           }
           context.pop();
         } else if (initialAreaId.isEmpty) {
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("Please select an area first.")));
+            context.snakebar(context.tr(I18nKeys.pleaseSelectAreaFirst));
           }
         }
       },
@@ -312,9 +333,9 @@ class _TableManagementPageState extends State<TableManagementPage>
   Future<void> _showDeleteTableDialog(BuildContext context, TableEntity table) async {
     showCustomizeDialog(
       context,
-      title: 'Confirm Delete Table',
-      actionText: "Delete Table",
-      content: Text('Are you sure you want to delete this table (${table.name})?'),
+      title: context.tr(I18nKeys.confirmDelete),
+      actionText: context.tr(I18nKeys.deleteTable),
+      content: Text(context.tr(I18nKeys.confirmDeleteTableMessage, {'tableName': table.name})),
       onAction: () {
         _tableCubit.deleteTable(id: table.id);
         context.pop();
@@ -322,10 +343,10 @@ class _TableManagementPageState extends State<TableManagementPage>
     );
   }
 
-  void _showSelectAreaDialog() {
+  void _showSelectAreaDialog(BuildContext context) {
     showCustomizeDialog(
       context,
-      title: 'Select area',
+      title: context.tr(I18nKeys.selectArea),
       showAction: false,
       content: SingleChildScrollView(
         child: BlocBuilder<AreaCubit, AreaState>(
@@ -334,7 +355,7 @@ class _TableManagementPageState extends State<TableManagementPage>
             if (state is AreaLoaded) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
-                children: state.areas.map((area) => _selectAreaListTile(area)).toList(),
+                children: state.areas.map((area) => _selectAreaListTile(context, area)).toList(),
               );
             }
             return const Center(child: CircularProgressIndicator());
@@ -344,7 +365,7 @@ class _TableManagementPageState extends State<TableManagementPage>
     );
   }
 
-  ListTile _selectAreaListTile(AreaEntity area) {
+  ListTile _selectAreaListTile(BuildContext context, AreaEntity area) {
     return ListTile(
       title: Text(area.name),
       onTap: () {

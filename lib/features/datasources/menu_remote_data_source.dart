@@ -211,7 +211,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'MenuRemoteDataSource.getAllMenuItems');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'MenuRemoteDataSource.getAllMenuItems.login',
+      );
     }
   }
 
@@ -235,7 +239,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'MenuRemoteDataSource.createMenuItem');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'MenuRemoteDataSource.createMenuItem',
+      );
     }
   }
 
@@ -259,7 +267,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'MenuRemoteDataSource.updateMenuItem');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'MenuRemoteDataSource.updateMenuItem',
+      );
     }
   }
 
@@ -270,7 +282,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'MenuRemoteDataSource.deleteMenuItem');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'MenuRemoteDataSource.deleteMenuItem',
+      );
     }
   }
 }

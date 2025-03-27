@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '/app/locale.dart';
 import '/core/widgets/dialog.dart';
 import '/features/blocs/payment/payment_cubit.dart';
 import '/features/entities/payment_entity.dart';
@@ -38,7 +39,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: adminAppBar(_scaffoldKey, "Payment Management"),
+      appBar: adminAppBar(_scaffoldKey, context.tr(I18nKeys.paymentManagement)),
       drawer: const AdminDrawer(),
       body: SafeArea(
         child: BlocProvider.value(
@@ -46,28 +47,36 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           child: Column(
             children: [
               headerRowWithCreateButton(
-                title: "Payment",
+                title: context.tr(I18nKeys.paymentMethod),
                 onPressed: () => _showCreateOrEditPaymentDialog(context, null),
-                buttonText: "Create Payment",
+                buttonText: context.tr(I18nKeys.createPayment),
               ),
               Expanded(
                 child: BlocBuilder<PaymentCubit, PaymentState>(
                   builder: (context, state) {
-                    if (state is PaymentLoading) {
+                    if (state is PaymentInitial) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is PaymentError) {
-                      return Center(child: Text("Error: ${state.failure.message}"));
+                      return Center(
+                        child: Text(
+                          context.tr(I18nKeys.errorWithMessage, {
+                            'message': state.failure.message ?? 'Unknown error',
+                          }),
+                        ),
+                      );
                     } else if (state is PaymentLoaded) {
                       final payments = state.payments;
-                      return ListView.builder(
-                        itemCount: payments.length,
-                        itemBuilder: (context, index) {
-                          final payment = payments[index];
-                          return _paymentListTile(payment, context);
-                        },
-                      );
+                      return payments.isEmpty
+                          ? Center(child: Text(context.tr(I18nKeys.noPaymentsFound)))
+                          : ListView.builder(
+                            itemCount: payments.length,
+                            itemBuilder: (context, index) {
+                              final payment = payments[index];
+                              return _paymentListTile(context, payment);
+                            },
+                          );
                     }
-                    return const Center(child: Text('No payments found'));
+                    return Center(child: Text(context.tr(I18nKeys.noPaymentsFound)));
                   },
                 ),
               ),
@@ -78,7 +87,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     );
   }
 
-  ListTile _paymentListTile(PaymentEntity payment, BuildContext context) {
+  ListTile _paymentListTile(BuildContext context, PaymentEntity payment) {
     return ListTile(
       title: Text(payment.name),
       trailing: Row(
@@ -87,19 +96,19 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
           actionIcon(
             context: context,
             icon: Icons.edit,
-            text: "Edit Payment",
+            text: context.tr(I18nKeys.editPayment),
             onPressed: () => _showCreateOrEditPaymentDialog(context, payment),
           ),
           actionIcon(
             context: context,
             icon: Icons.delete,
-            text: "Delete Payment",
+            text: context.tr(I18nKeys.deletePayment),
             onPressed: () => _showDeletePaymentDialog(context, payment),
           ),
           activeCheckbox(
             isActive: payment.isActive,
             textColor: payment.isActive ? Colors.green : Colors.grey,
-            onChanged: (value) => _updatePaymentStatus(payment, value),
+            onChanged: (value) => _updatePaymentStatus(context, payment, value),
           ),
         ],
       ),
@@ -110,7 +119,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     final formKey = GlobalKey<FormState>();
     final name = TextEditingController(text: payment?.name);
     bool isCreate = payment == null;
-    final title = isCreate ? 'Create Payment' : 'Edit Payment';
+    final title = isCreate ? context.tr(I18nKeys.createPayment) : context.tr(I18nKeys.editPayment);
 
     showCustomizeDialog(
       context,
@@ -124,8 +133,8 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
             children: [
               TextFormField(
                 controller: name,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) => value!.isEmpty ? "Required" : null,
+                decoration: InputDecoration(labelText: context.tr(I18nKeys.name)),
+                validator: (value) => value!.isEmpty ? context.tr(I18nKeys.require) : null,
               ),
             ],
           ),
@@ -151,9 +160,11 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
   void _showDeletePaymentDialog(BuildContext context, PaymentEntity payment) {
     showCustomizeDialog(
       context,
-      title: 'Confirm Delete Payment',
-      actionText: "Delete Payment",
-      content: Text('Are you sure you want to delete this payment (${payment.name})?'),
+      title: context.tr(I18nKeys.confirmDelete),
+      actionText: context.tr(I18nKeys.deletePayment),
+      content: Text(
+        context.tr(I18nKeys.confirmDeletePaymentMessage, {'paymentName': payment.name}),
+      ),
       onAction: () {
         _paymentCubit.deletePayment(id: payment.id).then((value) => _paymentCubit.getAllPayments());
         Navigator.pop(context);
@@ -161,7 +172,7 @@ class _PaymentManagementPageState extends State<PaymentManagementPage> {
     );
   }
 
-  void _updatePaymentStatus(PaymentEntity payment, bool isActive) {
+  void _updatePaymentStatus(BuildContext context, PaymentEntity payment, bool isActive) {
     _paymentCubit.updatePayment(id: payment.id, name: payment.name, isActive: isActive);
   }
 }

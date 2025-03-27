@@ -45,7 +45,7 @@ class SubCategoryCubit extends Cubit<SubCategoryState> {
     );
 
     result.fold((failure) => emit(SubCategoryError(failure: failure)), (subCategory) {
-      _allSubCategories = [..._allSubCategories, subCategory];
+      _allSubCategories.add(subCategory);
       filterSubCategoriesByCategory(_selectedCategoryId);
     });
   }
@@ -69,7 +69,6 @@ class SubCategoryCubit extends Cubit<SubCategoryState> {
     result.fold((failure) => emit(SubCategoryError(failure: failure)), (subCategory) {
       _allSubCategories =
           _allSubCategories.map((s) => s.id == subCategory.id ? subCategory : s).toList();
-
       filterSubCategoriesByCategory(_selectedCategoryId);
     });
   }
@@ -83,11 +82,11 @@ class SubCategoryCubit extends Cubit<SubCategoryState> {
   }
 
   Future<void> filterSubCategoriesByCategory(String? categoryId) async {
+    _selectedCategoryId = categoryId;
+
     if (categoryId == null || categoryId.isEmpty) {
       emit(SubCategoryLoaded(subCategories: _allSubCategories));
-      _selectedCategoryId = null;
     } else {
-      _selectedCategoryId = categoryId;
       final filteredList =
           _allSubCategories.where((subCategory) => subCategory.category == categoryId).toList();
       emit(SubCategoryLoaded(subCategories: filteredList));

@@ -21,7 +21,6 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
     _currentPage = 1;
     _hasMore = true;
     isLoadMore = false;
-    emit(OrderHistoryInitial());
     getAllOrderHistory();
   }
 
@@ -60,9 +59,8 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
         emit(OrderHistoryError(failure: failure));
       },
       (response) {
-        // Now expects OrderHistoryResponse
         isLoadMore = false;
-        final List<OrderHistoryEntity> newList = List.from(state.orderHistory); // Copy old
+        final List<OrderHistoryEntity> newList = List.from(state.orderHistory);
         newList.addAll(response.data);
         _hasMore = response.hasMore;
         emit(OrderHistoryLoaded(orderHistory: newList, hasMore: _hasMore));

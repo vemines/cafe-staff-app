@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import '/configs/configs.dart';
 
 part 'locale_key.dart';
-// Define a Keys class
 
 class AppLocalizations {
   final Locale locale;

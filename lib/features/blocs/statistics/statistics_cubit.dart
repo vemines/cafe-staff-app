@@ -23,7 +23,6 @@ class StatisticsCubit extends Cubit<StatisticsState> {
   }) : super(StatisticsInitial());
 
   Future<void> getAllAggregatedStatistics() async {
-    emit(StatisticsLoading());
     final result = await getAllAggregatedStatisticsUseCase(NoParams());
     result.fold(
       (failure) => emit(StatisticsError(failure: failure)),
@@ -41,7 +40,6 @@ class StatisticsCubit extends Cubit<StatisticsState> {
   }
 
   Future<void> getThisWeekStatistics() async {
-    emit(StatisticsLoading());
     final result = await getThisWeekStatisticsUseCase(NoParams());
     result.fold(
       (failure) => emit(StatisticsError(failure: failure)),

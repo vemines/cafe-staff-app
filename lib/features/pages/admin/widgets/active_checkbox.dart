@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '/app/locale.dart';
 import '/core/widgets/space.dart';
 
 Row activeCheckbox({
@@ -16,6 +17,10 @@ Row activeCheckbox({
       },
     ),
     sbW1,
-    Text("Active", style: TextStyle(color: textColor)),
+    Builder(
+      builder: (context) {
+        return Text(context.tr(I18nKeys.active), style: TextStyle(color: textColor));
+      },
+    ),
   ],
 );

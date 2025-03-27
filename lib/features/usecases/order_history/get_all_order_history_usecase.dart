@@ -1,4 +1,3 @@
-// lib/features/usecases/order_history/get_all_order_history_usecase.dart
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
@@ -6,7 +5,6 @@ import '/core/errors/failures.dart';
 import '/core/usecase/usecase.dart';
 import '../../entities/order_history_entity.dart';
 import '../../repositories/order_history_repository.dart';
-import '../../models/order_history_model.dart'; // Import
 
 class GetAllOrderHistoryParams extends Equatable {
   final DateTime? startDate;
@@ -27,7 +25,6 @@ class GetAllOrderHistoryParams extends Equatable {
   List<Object?> get props => [startDate, endDate, paymentMethod, page, limit];
 }
 
-// --- Add OrderHistoryResponse class ---
 class OrderHistoryResponse extends Equatable {
   final List<OrderHistoryEntity> data;
   final bool hasMore;
@@ -40,16 +37,12 @@ class OrderHistoryResponse extends Equatable {
 }
 
 class GetAllOrderHistoryUseCase implements UseCase<OrderHistoryResponse, GetAllOrderHistoryParams> {
-  // Corrected return type
   final OrderHistoryRepository repository;
 
   GetAllOrderHistoryUseCase(this.repository);
 
   @override
-  Future<Either<Failure, OrderHistoryResponse>> call(
-    // Corrected return type
-    GetAllOrderHistoryParams params,
-  ) async {
+  Future<Either<Failure, OrderHistoryResponse>> call(GetAllOrderHistoryParams params) async {
     if (params.page < 1) {
       return Left(InvalidInputFailure(message: "Page number must be >= 1"));
     }
@@ -60,10 +53,8 @@ class GetAllOrderHistoryUseCase implements UseCase<OrderHistoryResponse, GetAllO
     try {
       final result = await repository.getAllOrderHistory(params);
       return result.fold((failure) => Left(failure), (data) {
-        final orderHistories =
-            (data['data'] as List).map((item) => OrderHistoryModel.fromJson(item)).toList();
         return Right(
-          OrderHistoryResponse(data: orderHistories, hasMore: data['hasMore'], page: params.page),
+          OrderHistoryResponse(data: data['data'], hasMore: data['hasMore'], page: params.page),
         );
       });
     } catch (e) {

@@ -1,6 +1,6 @@
-import '../../../../core/extensions/build_content_extensions.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/build_content_extensions.dart';
 import '../../../../core/widgets/space.dart';
 
 Widget infoRow(BuildContext context, String title, dynamic text) => DefaultTextStyle(

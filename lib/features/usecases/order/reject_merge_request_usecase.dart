@@ -6,12 +6,12 @@ import '/core/usecase/usecase.dart';
 import '../../repositories/order_repository.dart';
 
 class RejectMergeRequestParams extends Equatable {
-  final String mergeRequestId;
+  final String tableId;
 
-  const RejectMergeRequestParams({required this.mergeRequestId});
+  const RejectMergeRequestParams({required this.tableId});
 
   @override
-  List<Object> get props => [mergeRequestId];
+  List<Object> get props => [tableId];
 }
 
 class RejectMergeRequestUseCase implements UseCase<Unit, RejectMergeRequestParams> {

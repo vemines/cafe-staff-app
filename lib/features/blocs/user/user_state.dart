@@ -9,8 +9,6 @@ abstract class UserState extends Equatable {
 
 class UserInitial extends UserState {}
 
-class UserLoading extends UserState {}
-
 class UserLoaded extends UserState {
   final List<UserEntity> users;
 
@@ -19,26 +17,6 @@ class UserLoaded extends UserState {
   @override
   List<Object> get props => [users];
 }
-
-class UserCreated extends UserState {
-  final UserEntity user;
-
-  const UserCreated({required this.user});
-
-  @override
-  List<Object> get props => [user];
-}
-
-class UserUpdated extends UserState {
-  final UserEntity user;
-
-  const UserUpdated({required this.user});
-
-  @override
-  List<Object> get props => [user];
-}
-
-class UserDeleted extends UserState {}
 
 class UserError extends UserState {
   final Failure failure;

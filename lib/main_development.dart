@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import 'app/app.dart';
 import 'app/flavor.dart';
-// import 'core/services/socket_service.dart';
 import 'features/blocs/auth/auth_cubit.dart';
 import 'injection_container.dart';
 
@@ -26,20 +25,8 @@ Future<void> main() async {
       if (state is AuthAuthenticated) {
         // Update Dio headers
         sl<Dio>().options.headers = {'userid': state.user.id, 'Content-Type': 'application/json'};
-
-        // Connect the SocketService *only* when authenticated.
-        // if (!sl.isRegistered<SocketService>()) {
-        //   // Check before registering
-        //   sl.registerSingleton<SocketService>(SocketService(headers: _getHeaders));
-        // }
-        // sl<SocketService>().connect(); // Connect
       } else if (state is AuthUnauthenticated) {
-        // Disconnect and *unregister* the SocketService.
-        // if (sl.isRegistered<SocketService>()) {
-        //   // IMPORTANT: Check if registered!
-        //   sl<SocketService>().disconnect(); // Disconnect
-        //   sl.unregister<SocketService>(); // Unregister (clean up)
-        // }
+        sl<Dio>().options.headers = null;
       }
     });
     await authCubit.getLoggedInUser();
@@ -50,12 +37,3 @@ Future<void> main() async {
 
   runApp(DevicePreview(builder: (context) => App(), backgroundColor: Colors.black54));
 }
-
-// Map<String, dynamic> _getHeaders() {
-//   final authState = sl.isRegistered<AuthCubit>() ? sl<AuthCubit>().state : null;
-//   final Map<String, dynamic> headers = {'Content-Type': 'application/json'};
-//   if (authState is AuthAuthenticated) {
-//     headers['userid'] = authState.user.id;
-//   }
-//   return headers;
-// }

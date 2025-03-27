@@ -8,6 +8,7 @@ import '/features/entities/menu_item_entity.dart';
 class OrderButton extends StatelessWidget {
   final MenuItemEntity menuItem;
   final int quantity;
+  final int max;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
@@ -17,7 +18,12 @@ class OrderButton extends StatelessWidget {
     required this.quantity,
     required this.onIncrement,
     required this.onDecrement,
+    this.max = 9999,
   });
+
+  void onInc() {
+    if (quantity < max) onIncrement();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +34,7 @@ class OrderButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          onTap: onIncrement,
+          onTap: onInc,
           child: Container(
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

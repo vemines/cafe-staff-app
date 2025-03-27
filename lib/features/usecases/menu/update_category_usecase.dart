@@ -6,13 +6,12 @@ import '/core/usecase/usecase.dart';
 import '../../entities/category_entity.dart';
 import '../../repositories/menu_repository.dart';
 
-// ignore: must_be_immutable
 class UpdateCategoryParams extends Equatable {
   final String id;
-  String? name;
-  bool? isActive;
+  final String? name;
+  final bool? isActive;
 
-  UpdateCategoryParams({required this.id, this.name, this.isActive});
+  const UpdateCategoryParams({required this.id, this.name, this.isActive});
 
   @override
   List<Object?> get props => [id, name, isActive];

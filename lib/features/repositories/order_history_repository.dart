@@ -4,7 +4,6 @@ import '/core/errors/exceptions.dart';
 import '/core/errors/failures.dart';
 import '/core/network/network_info.dart';
 import '../datasources/order_history_remote_data_source.dart';
-import '../entities/order_history_entity.dart';
 import '../usecases/order_history/get_all_order_history_usecase.dart';
 
 abstract class OrderHistoryRepository {
@@ -30,9 +29,8 @@ class OrderHistoryRepositoryImpl implements OrderHistoryRepository {
           page: params.page,
           limit: params.limit,
         );
-        final orderHistories =
-            (remoteOrderHistory['data'] as List).map((item) => item as OrderHistoryEntity).toList();
-        return Right({'data': orderHistories, 'hasMore': remoteOrderHistory['hasMore']});
+
+        return Right(remoteOrderHistory);
       } catch (e) {
         return Left(handleRepositoryException(e));
       }

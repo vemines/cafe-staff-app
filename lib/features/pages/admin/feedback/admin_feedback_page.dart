@@ -1,13 +1,14 @@
-import '../../../blocs/feedback/feedback_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
-import '/features/pages/admin/widgets/admin_appbar.dart';
 import '/core/extensions/datetime_extensions.dart';
-import '/core/widgets/space.dart';
 import '/core/widgets/dialog.dart';
+import '/core/widgets/space.dart';
+import '/features/pages/admin/widgets/admin_appbar.dart';
 import '/injection_container.dart';
+import '../../../blocs/feedback/feedback_cubit.dart';
 import '../../../entities/feedback_entity.dart';
 import '../widgets/admin_drawer.dart';
 import '../widgets/date_range_button.dart';
@@ -44,7 +45,7 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: adminAppBar(_scaffoldKey, 'Feedback'),
+      appBar: adminAppBar(_scaffoldKey, context.tr(I18nKeys.feedback)),
       drawer: const AdminDrawer(),
       body: SafeArea(
         child: Column(
@@ -57,13 +58,19 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
                   if (state is FeedbackLoading) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is FeedbackError) {
-                    return Center(child: Text('Error: ${state.failure.message}'));
-                  } else if (state is FeedbackLoaded || state is FeedbackLoadingMore) {
+                    return Center(
+                      child: Text(
+                        context.tr(I18nKeys.errorWithMessage, {
+                          'message': state.failure.message ?? 'Unknown error',
+                        }),
+                      ),
+                    );
+                  } else if (state is FeedbackLoaded) {
                     final feedbacks = state.feedbacks;
                     final hasMore = state.hasMore;
-                    return _feedbackList(feedbacks: feedbacks, hasMore: hasMore);
+                    return _feedbackList(context, feedbacks: feedbacks, hasMore: hasMore);
                   }
-                  return const Center(child: Text("No feedback available."));
+                  return Center(child: Text(context.tr(I18nKeys.noFeedbackAvailable)));
                 },
               ),
             ),
@@ -73,7 +80,11 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
     );
   }
 
-  Widget _feedbackList({required List<FeedbackEntity> feedbacks, required bool hasMore}) {
+  Widget _feedbackList(
+    BuildContext context, {
+    required List<FeedbackEntity> feedbacks,
+    required bool hasMore,
+  }) {
     return ListView.builder(
       itemCount: feedbacks.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -110,7 +121,6 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
             ),
           );
         } else {
-          //Load more
           if (!hasMore) return const SizedBox.shrink();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _feedbackCubit.getAllFeedback(
@@ -167,7 +177,10 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
           ),
           selectButton(
             onPressed: () => _showRatingFilterDialog(context),
-            text: _selectedRating == null ? "Select rating" : '$_selectedRating Stars',
+            text:
+                _selectedRating == null
+                    ? context.tr(I18nKeys.selectRating)
+                    : context.tr(I18nKeys.stars, {'count': '$_selectedRating'}),
             minWidth: 220,
           ),
         ],
@@ -178,14 +191,17 @@ class _AdminFeedbackPageState extends State<AdminFeedbackPage> {
   void _showRatingFilterDialog(BuildContext context) {
     showCustomizeDialog(
       context,
-      title: 'Select Rating',
+      title: context.tr(I18nKeys.selectRating),
       showAction: false,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: List<Widget>.generate(6, (index) {
             final rating = index == 0 ? null : index;
-            final displayString = index == 0 ? "All Ratings" : "$index Stars";
+            final displayString =
+                index == 0
+                    ? context.tr(I18nKeys.allRatings)
+                    : context.tr(I18nKeys.stars, {'count': '$index'});
 
             return ListTile(
               title: Text(displayString),

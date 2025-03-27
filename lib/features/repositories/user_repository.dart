@@ -1,9 +1,9 @@
-import '../../core/usecase/params.dart';
 import 'package:dartz/dartz.dart';
 
 import '/core/errors/exceptions.dart';
 import '/core/errors/failures.dart';
 import '/core/network/network_info.dart';
+import '../../core/usecase/params.dart';
 import '../datasources/user_remote_data_source.dart';
 import '../entities/user_entity.dart';
 import '../usecases/user/create_user_usecase.dart';

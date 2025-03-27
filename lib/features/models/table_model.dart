@@ -22,7 +22,7 @@ class TableModel extends TableEntity {
       status: json[TableApiMap.status].toString().toTableStatus(),
       areaId: json[TableApiMap.areaId] as String,
       mergedTable: intParse(json[TableApiMap.mergedTable], fallbackValue: 1),
-      order: json['order'] != null ? OrderModel.fromJson(json['order']) : null,
+      order: json[TableApiMap.order] != null ? OrderModel.fromJson(json['order']) : null,
     );
   }
 

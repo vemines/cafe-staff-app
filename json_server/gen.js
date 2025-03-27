@@ -1,6 +1,7 @@
 // --- FILE gen.js ---
 const { faker } = require('@faker-js/faker');
 const fs = require('fs');
+const moment = require('moment');
 
 function generateData() {
   const data = {
@@ -97,7 +98,7 @@ function generateData() {
   const areas = ['Main Room', 'Patio', 'Bar', 'Garden', 'VIP Lounge'];
   let tableId = 1;
   areas.forEach((areaName, areaIndex) => {
-    const tableIds = Array.from({ length: faker.number.int({ min: 15, max: 25 }) }, () =>
+    const tableIds = Array.from({ length: faker.number.int({ min: 5, max: 10 }) }, () =>
       String(tableId++),
     );
     data.areas.push({ id: String(areaIndex + 1), name: areaName, tables: tableIds });
@@ -122,7 +123,6 @@ function generateData() {
       isActive: true,
     });
   });
-
   let orderIdCounter = 1;
   const now = new Date();
   const twoDaysAgo = new Date(now);
@@ -143,16 +143,11 @@ function generateData() {
         orderId: `order${orderIdCounter}`,
         menuItemId: randomMenuItemId,
         quantity: faker.number.int({ min: 1, max: 4 }),
-        price: menuItem.price,
+        price: menuItem.price, // Include price for accurate history
       };
     }).filter((item) => item !== null);
 
     if (orderItems.length === 0) continue;
-
-    let totalPrice = orderItems.reduce((sum, item) => {
-      const menuItem = data.menuItems.find((mi) => mi.id === item.menuItemId);
-      return sum + (menuItem ? menuItem.price * item.quantity : 0);
-    }, 0);
 
     const orderFate = faker.helpers.arrayElement(['pending', 'served', 'history']);
     let servedBy = null;
@@ -162,38 +157,52 @@ function generateData() {
     );
     let timestamp = faker.date.between({ from: twoDaysAgo, to: now });
 
-    if (orderFate === 'served') {
+    if (orderFate === 'served' || orderFate === 'history') {
       servedBy = faker.helpers.arrayElement(
         data.users.filter((u) => u.role === 'serve').map((u) => u.id),
       );
-      servedAt = faker.date.between({ from: twoDaysAgo, to: now }).toISOString();
+      servedAt = faker.date.between({ from: timestamp, to: now }).toISOString();
     }
 
     if (orderFate !== 'history') {
+      let totalPrice = orderItems.reduce((sum, item) => {
+        const menuItem = data.menuItems.find((mi) => mi.id === item.menuItemId);
+        return sum + (menuItem ? menuItem.price * item.quantity : 0);
+      }, 0);
       data.orders.push({
         id: `order${orderIdCounter}`,
         tableId: tableIdForOrder,
-        timestamp: timestamp.toISOString(),
+        createdAt: timestamp.toISOString(), // Use consistent timestamp
         orderItems,
         createdBy,
         servedBy,
         servedAt,
+        totalPrice: parseFloat(totalPrice.toFixed(2)),
       });
+      // Remove table status update from here
     }
 
     if (orderFate === 'history') {
-      const completedAt = faker.date.between({ from: twoDaysAgo, to: now }).toISOString();
+      const completedAt = faker.date
+        .between({ from: servedAt || timestamp, to: now })
+        .toISOString();
       const cashierId = faker.helpers.arrayElement(
         data.users.filter((u) => u.role === 'cashier').map((u) => u.id),
       );
       const paymentMethodName = faker.helpers.arrayElement(paymentMethods);
+
+      // Calculate totalPrice for orderHistory
+      let totalPrice = orderItems.reduce((sum, item) => {
+        const menuItem = data.menuItems.find((mi) => mi.id === item.menuItemId);
+        return sum + (menuItem ? menuItem.price * item.quantity : 0);
+      }, 0);
+
       data.orderHistory.push({
         id: `history${orderIdCounter}`,
-        orderId: `order${orderIdCounter}`,
         tableId: tableIdForOrder,
         paymentMethod: paymentMethodName,
-        createdAt: timestamp.toISOString(),
-        servedAt: servedAt,
+        createdAt: timestamp.toISOString(), // Use consistent timestamp
+        servedAt,
         completedAt,
         orderItems,
         cashierId,
@@ -204,45 +213,26 @@ function generateData() {
     orderIdCounter++;
   }
 
-  for (let i = 0; i < 10; i++) {
-    const allTableIds = data.tables.map((t) => t.id);
-    const sourceTableId = faker.helpers.arrayElement(allTableIds);
-    const targetTableId = faker.helpers.arrayElement(
-      allTableIds.filter((id) => id !== sourceTableId),
-    );
+  // *** UPDATED: Precise Table Status Generation ***
+  data.tables.forEach((table) => {
+    const hasActiveOrders = data.orders.some((o) => o.tableId === table.id);
 
-    const sourceOrder = data.orders.find((o) => o.tableId === sourceTableId);
-    const splitItemIds = sourceOrder
-      ? faker.helpers.arrayElements(
-          sourceOrder.orderItems.map((item) => item.id),
-          faker.number.int({ min: 0, max: sourceOrder.orderItems.length }),
-        )
-      : [];
-
-    if (sourceTableId !== targetTableId && sourceOrder) {
-      data.mergeRequests.push({
-        id: faker.database.mongodbObjectId(),
-        sourceTableId,
-        targetTableId,
-        splitItemIds,
-        status: 'pending',
-        requestedBy: faker.helpers.arrayElement(
-          data.users.filter((u) => u.role === 'serve').map((u) => u.id),
-        ),
-        requestedAt: faker.date.recent({ days: 1 }).toISOString(),
-      });
-
-      const targetTable = data.tables.find((t) => t.id === targetTableId);
-      if (targetTable) {
-        targetTable.mergedTable = (targetTable.mergedTable || 1) + 1;
-      }
+    if (hasActiveOrders) {
+      //If table has orders, ensure it has a non-completed status
+      table.status = faker.helpers.arrayElement(['pending', 'served']);
+    } else {
+      // If no orders, ensure status is 'completed'
+      table.status = 'completed';
     }
-  }
+  });
 
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 90);
+  const currentTime = moment();
+
+  const startDate = moment(currentTime).subtract(90, 'days').toDate();
   const endDate = new Date();
+  console.log('endDate:', endDate.toLocaleString());
   let historyIdCounter = 1;
+
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
     for (let i = 0; i < faker.number.int({ min: 5, max: 15 }); i++) {
       const orderItems = Array.from({ length: faker.number.int({ min: 1, max: 7 }) }, () => {
@@ -261,19 +251,20 @@ function generateData() {
 
       if (orderItems.length === 0) continue;
 
+      // Generate a timestamp within the same day, but before current time
       const createdAt = faker.date.between({
-        from: d,
-        to: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59),
+        from: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0),
+        to: currentTime.toDate(),
       });
-      const servedAt = faker.date
-        .between({ from: createdAt, to: new Date(createdAt.getTime() + 60 * 60000) })
-        .toISOString();
-      const completedAt = faker.date
-        .between({ from: servedAt, to: new Date(createdAt.getTime() + 180 * 60000) })
-        .toISOString();
+
+      // Set servedAt and completedAt to be the same as createdAt
+      const servedAt = new Date(createdAt);
+      const completedAt = new Date(createdAt);
+
       const cashierId = faker.helpers.arrayElement(
         data.users.filter((u) => u.role === 'cashier').map((u) => u.id),
       );
+
       let totalPrice = orderItems.reduce((sum, item) => {
         const menuItem = data.menuItems.find((mi) => mi.id === item.menuItemId);
         return sum + (menuItem ? menuItem.price * item.quantity : 0);
@@ -286,8 +277,8 @@ function generateData() {
         tableId: String(faker.number.int({ min: 1, max: tableId - 1 })),
         paymentMethod: paymentMethodName,
         createdAt: createdAt.toISOString(),
-        servedAt,
-        completedAt,
+        servedAt: servedAt.toISOString(),
+        completedAt: completedAt.toISOString(),
         orderItems,
         cashierId,
         totalPrice: parseFloat(totalPrice.toFixed(2)),
@@ -356,7 +347,7 @@ function generateData() {
       });
 
     data.orders
-      .filter((order) => order.timestamp && order.timestamp.startsWith(dateString))
+      .filter((order) => order.createdAt && order.createdAt.startsWith(dateString))
       .forEach((order) => {
         totalOrders++;
         totalRevenue += order.orderItems.reduce((sum, item) => {
@@ -370,8 +361,7 @@ function generateData() {
             soldItems[menuItem.name] = (soldItems[menuItem.name] || 0) + item.quantity;
           }
         });
-
-        const hour = new Date(order.timestamp).getHours();
+        const hour = new Date(order.createdAt).getHours();
         ordersByHour[hour] = (ordersByHour[hour] || 0) + 1;
       });
 
@@ -401,7 +391,7 @@ function generateData() {
 
   const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
   for (let d = new Date(startMonth); d <= endDate; d.setMonth(d.getMonth() + 1)) {
-    const yearMonth = d.toISOString().substring(0, 7);
+    const yearMonth = d.toISOString().substring(0, 7); // YYYY-MM
     const monthlyStats = data.statistics.filter((s) => s.date.startsWith(yearMonth));
 
     if (monthlyStats.length > 0) {
@@ -455,7 +445,7 @@ function generateData() {
       data.aggregatedStatistics.push({
         id: yearMonth,
         year: d.getFullYear(),
-        month: d.getMonth() + 1,
+        month: d.getMonth() + 1, // Months are 0-indexed
         totalOrders: aggregated.totalOrders,
         totalRevenue: parseFloat(aggregated.totalRevenue.toFixed(2)),
         paymentMethodSummary: aggregated.paymentMethodSummary,

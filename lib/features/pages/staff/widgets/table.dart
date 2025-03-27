@@ -72,7 +72,7 @@ class _TableWidgetState extends State<TableWidget> {
                     style: _infoStyle,
                   ),
                   sbH1,
-                  TimerWidget(createdAt: widget.table.order!.createdAt!),
+                  TimerWidget(createdAt: widget.table.order?.createdAt),
                 ],
               ],
             ),
@@ -97,7 +97,7 @@ class _TableWidgetState extends State<TableWidget> {
 }
 
 class TimerWidget extends StatefulWidget {
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   const TimerWidget({super.key, required this.createdAt});
 
@@ -107,20 +107,22 @@ class TimerWidget extends StatefulWidget {
 
 class _TimerWidgetState extends State<TimerWidget> {
   Timer? _timer;
-  late Duration _duration;
+  late Duration _duration = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    _duration = DateTime.now().difference(widget.createdAt);
-    _startTimer();
+    if (widget.createdAt != null) {
+      _duration = DateTime.now().difference(widget.createdAt!);
+      _startTimer();
+    }
   }
 
   @override
   void didUpdateWidget(covariant TimerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.createdAt != oldWidget.createdAt) {
-      _duration = DateTime.now().difference(widget.createdAt);
+    if (widget.createdAt != null && widget.createdAt != oldWidget.createdAt) {
+      _duration = DateTime.now().difference(widget.createdAt!);
       _startTimer();
     }
   }

@@ -9,8 +9,6 @@ abstract class CategoryState extends Equatable {
 
 class CategoryInitial extends CategoryState {}
 
-class CategoryLoading extends CategoryState {}
-
 class CategoryLoaded extends CategoryState {
   final List<CategoryEntity> categories;
 
@@ -19,24 +17,6 @@ class CategoryLoaded extends CategoryState {
   @override
   List<Object> get props => [categories];
 }
-
-// class CategoryCreated extends CategoryState {
-//   final CategoryEntity category;
-
-//   const CategoryCreated({required this.category});
-//   @override
-//   List<Object> get props => [category];
-// }
-
-// class CategoryUpdated extends CategoryState {
-//   final CategoryEntity category;
-
-//   const CategoryUpdated({required this.category});
-//   @override
-//   List<Object> get props => [category];
-// }
-
-// class CategoryDeleted extends CategoryState {}
 
 class CategoryError extends CategoryState {
   final Failure failure;

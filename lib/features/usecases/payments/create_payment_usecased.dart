@@ -8,18 +8,18 @@ import '../../repositories/payment_repository.dart';
 
 class CreatePaymentParams extends Equatable {
   final String name;
-  // Add other fields as necessary (e.g., description, isActive)
 
   const CreatePaymentParams({required this.name});
 
   @override
   List<Object?> get props => [name];
 }
+
 class CreatePaymentUseCase implements UseCase<PaymentEntity, CreatePaymentParams> {
   final PaymentRepository repository;
 
   CreatePaymentUseCase(this.repository);
-    @override
+  @override
   Future<Either<Failure, PaymentEntity>> call(CreatePaymentParams params) async {
     return await repository.createPayment(params);
   }

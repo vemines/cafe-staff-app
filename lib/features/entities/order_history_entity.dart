@@ -4,7 +4,6 @@ import 'order_item_entity.dart';
 
 class OrderHistoryEntity extends Equatable {
   final String id;
-  final String orderId;
   final String tableName;
   final String paymentMethod;
   final DateTime createdAt;
@@ -16,7 +15,6 @@ class OrderHistoryEntity extends Equatable {
 
   const OrderHistoryEntity({
     required this.id,
-    required this.orderId,
     required this.tableName,
     required this.paymentMethod,
     required this.createdAt,
@@ -24,13 +22,12 @@ class OrderHistoryEntity extends Equatable {
     required this.completedAt,
     required this.orderItems,
     required this.cashierName,
-    required this.totalPrice, // Added totalPrice
+    required this.totalPrice,
   });
 
   @override
   List<Object?> get props => [
     id,
-    orderId,
     tableName,
     paymentMethod,
     createdAt,
@@ -43,7 +40,6 @@ class OrderHistoryEntity extends Equatable {
 
   OrderHistoryEntity copyWith({
     String? id,
-    String? orderId,
     String? tableName,
     String? paymentMethod,
     DateTime? createdAt,
@@ -55,7 +51,6 @@ class OrderHistoryEntity extends Equatable {
   }) {
     return OrderHistoryEntity(
       id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
       tableName: tableName ?? this.tableName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,

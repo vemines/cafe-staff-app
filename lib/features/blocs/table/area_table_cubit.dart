@@ -43,11 +43,8 @@ class AreaCubit extends Cubit<AreaState> {
   Future<void> updateArea({required String id, required String name}) async {
     final result = await updateAreaUseCase(UpdateAreaParams(id: id, name: name));
     result.fold((failure) => emit(AreaError(failure: failure)), (area) {
-      List<AreaEntity> areas = [];
-      if (state is AreaLoaded) {
-        areas = (state as AreaLoaded).areas;
-      }
-      areas = areas.map((a) => a.id == area.id ? area : a).toList();
+      List<AreaEntity> areas =
+          (state as AreaLoaded).areas.map((a) => a.id == area.id ? area : a).toList();
       emit(AreaLoaded(areas: areas));
     });
   }
@@ -55,11 +52,7 @@ class AreaCubit extends Cubit<AreaState> {
   Future<void> deleteArea({required String id}) async {
     final result = await deleteAreaUseCase(DeleteAreaParams(id: id));
     result.fold((failure) => emit(AreaError(failure: failure)), (_) {
-      List<AreaEntity> areas = [];
-      if (state is AreaLoaded) {
-        areas = (state as AreaLoaded).areas;
-      }
-      areas = areas.where((a) => a.id != id).toList();
+      List<AreaEntity> areas = (state as AreaLoaded).areas.where((a) => a.id != id).toList();
       emit(AreaLoaded(areas: areas));
     });
   }

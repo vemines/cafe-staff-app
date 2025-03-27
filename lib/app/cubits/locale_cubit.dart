@@ -25,11 +25,7 @@ class LocaleCubit extends Cubit<Locale> {
 
     emit(newLocale);
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_localeKey, newLocale.languageCode);
-    } catch (e) {
-      debugPrint('Error saving locale: $e');
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_localeKey, newLocale.languageCode);
   }
 }

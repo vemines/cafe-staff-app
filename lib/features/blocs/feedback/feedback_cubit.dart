@@ -23,10 +23,7 @@ class FeedbackCubit extends Cubit<FeedbackState> {
   Future<void> createFeedback(CreateFeedbackParams params) async {
     emit(FeedbackLoading());
     final result = await createFeedbackUseCase(params);
-    result.fold(
-      (failure) => emit(FeedbackError(failure: failure)),
-      (feedback) => emit(FeedbackCreated(feedback: feedback)),
-    );
+    result.fold((failure) => emit(FeedbackError(failure: failure)), (feedback) => {});
   }
 
   Future<void> getAllFeedback({
@@ -39,11 +36,9 @@ class FeedbackCubit extends Cubit<FeedbackState> {
 
     if (isLoadMore) {
       isLoadMore = true;
-      emit(FeedbackLoadingMore(feedbacks: state.feedbacks));
       _currentPage++;
     } else {
       isLoadMore = false;
-      emit(FeedbackLoading());
       _currentPage = 1;
       _hasMore = true;
     }
@@ -74,7 +69,7 @@ class FeedbackCubit extends Cubit<FeedbackState> {
   Future<void> clearFilters() async {
     _hasMore = true;
     isLoadMore = false;
-    emit(const FeedbackLoaded(feedbacks: [], hasMore: true)); //GOOD
+    _currentPage = 1;
     getAllFeedback();
   }
 }

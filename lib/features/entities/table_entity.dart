@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '/core/constants/enum.dart';
-import 'order_entity.dart'; // Import OrderEntity
+import 'order_entity.dart';
 
 class TableEntity extends Equatable {
   final String id;

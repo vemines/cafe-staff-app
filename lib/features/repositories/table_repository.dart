@@ -50,7 +50,7 @@ class TableRepositoryImpl implements TableRepository {
   Future<Either<Failure, List<AreaEntity>>> getAllAreasTable(NoParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        final areasTable = await remoteDataSource.getAllAreasTable();
+        final areasTable = await remoteDataSource.getAllAreas();
         return Right(areasTable);
       } catch (e) {
         return Left(handleRepositoryException(e));

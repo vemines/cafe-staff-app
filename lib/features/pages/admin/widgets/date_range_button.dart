@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/datetime_extensions.dart';
 import '/core/extensions/num_extensions.dart';
@@ -39,7 +40,7 @@ class DateRangeButtonWidget extends StatelessWidget {
         },
         child: Text(
           startDaySelected == null || endDaySelected == null
-              ? 'Select Date Range'
+              ? context.tr(I18nKeys.selectDateRange)
               : '${startDaySelected!.toFormatDate} - ${endDaySelected!.toFormatDate}',
         ),
       ),

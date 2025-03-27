@@ -12,6 +12,7 @@ import '../usecases/order/create_order_usecase.dart';
 import '../usecases/order/reject_merge_request_usecase.dart';
 import '../usecases/order/serve_order_usecase.dart';
 import '../usecases/order/split_order_usecase.dart';
+import '../usecases/order/update_order_usecase.dart';
 
 abstract class OrderRepository {
   Future<Either<Failure, OrderEntity>> createOrder(CreateOrderParams params);
@@ -21,6 +22,7 @@ abstract class OrderRepository {
   Future<Either<Failure, Unit>> splitOrder(SplitOrderParams params);
   Future<Either<Failure, OrderEntity>> serveOrder(ServeOrderParams params);
   Future<Either<Failure, OrderEntity>> completeOrder(CompleteOrderParams params);
+  Future<Either<Failure, OrderEntity>> updateOrder(UpdateOrderParams params);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -28,6 +30,23 @@ class OrderRepositoryImpl implements OrderRepository {
   final NetworkInfo networkInfo;
 
   OrderRepositoryImpl({required this.remoteDataSource, required this.networkInfo});
+
+  @override
+  Future<Either<Failure, OrderEntity>> updateOrder(UpdateOrderParams params) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remoteOrder = await remoteDataSource.updateOrder(
+          id: params.orderId,
+          orderItems: params.orderItems,
+        );
+        return Right(remoteOrder);
+      } catch (e) {
+        return Left(handleRepositoryException(e));
+      }
+    } else {
+      return const Left(NoInternetFailure());
+    }
+  }
 
   @override
   Future<Either<Failure, OrderEntity>> createOrder(CreateOrderParams params) async {
@@ -68,7 +87,7 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<Either<Failure, Unit>> approveMergeRequest(ApproveMergeRequestParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        await remoteDataSource.approveMerge(mergeRequestId: params.mergeRequestId);
+        await remoteDataSource.approveMerge(tableId: params.tableId);
         return const Right(unit);
       } catch (e) {
         return Left(handleRepositoryException(e));
@@ -100,7 +119,7 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<Either<Failure, Unit>> rejectMergeRequest(RejectMergeRequestParams params) async {
     if (await networkInfo.isConnected) {
       try {
-        await remoteDataSource.rejectMergeRequest(mergeRequestId: params.mergeRequestId);
+        await remoteDataSource.rejectMergeRequest(tableId: params.tableId);
         return const Right(unit);
       } catch (e) {
         return Left(handleRepositoryException(e));

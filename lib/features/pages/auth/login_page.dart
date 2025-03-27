@@ -1,11 +1,10 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '/app/locale.dart';
 import '/core/extensions/build_content_extensions.dart';
 import '/core/extensions/num_extensions.dart';
 import '/core/widgets/space.dart';
@@ -41,8 +40,9 @@ class _LoginPageState extends State<LoginPage> {
   void _login(BuildContext context) {
     if (_username.text.length >= 6 && _password.text.length >= 6) {
       _authCubit.login(username: _username.text, password: _password.text);
+    } else {
+      context.snakebar(context.tr(I18nKeys.usernamePasswordLengthError));
     }
-    // context.snakebar("username and password must have 6 characters");
   }
 
   @override
@@ -51,35 +51,31 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (_, state) {
           if (state is AuthError) {
-            context.snakebar(state.failure.message ?? 'Login Failed');
+            context.snakebar(state.failure.message ?? context.tr(I18nKeys.loginFailed));
           } else if (state is AuthAuthenticated) {
             final user = state.user;
-            if (user.role == 'serve' || user.role == 'cashier')
+            if (user.role == 'serve' || user.role == 'cashier') {
               context.go(Paths.home);
-            else if (user.role == 'admin')
+            } else if (user.role == 'admin') {
               context.go(Paths.dashboard);
-            else {
-              context.snakebar("Role invalid");
+            } else {
+              context.snakebar(context.tr(I18nKeys.roleInvalid));
             }
           }
         },
         builder: (_, state) {
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            return Container(
-              height: double.infinity,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('images/bg.png'),
-                  fit: context.isMobile ? BoxFit.fitHeight : BoxFit.fill,
-                ),
+          return Container(
+            height: double.infinity,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/bg.png'),
+                fit: context.isMobile ? BoxFit.fitHeight : BoxFit.fill,
               ),
-              alignment: Alignment.center,
-              child: _loginForm(context),
-            );
-          }
+            ),
+            alignment: Alignment.center,
+            child: _loginForm(context),
+          );
         },
       ),
     );
@@ -98,18 +94,20 @@ class _LoginPageState extends State<LoginPage> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaY: 5, sigmaX: 5),
           child: Padding(
-            padding: const EdgeInsets.all(25),
+            padding: eiAll6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 sbH8,
-                Center(child: _textWidget("Login", weight: FontWeight.w700, size: 30)),
+                Center(
+                  child: _textWidget(context.tr(I18nKeys.login), weight: FontWeight.w700, size: 30),
+                ),
                 sbH6,
-                _textWidget("Username"),
-                _inputField(_username, "Enter Username"),
+                _textWidget(context.tr(I18nKeys.username)),
+                _inputField(_username, context.tr(I18nKeys.enterUsername)),
                 sbH4,
-                _textWidget("Password"),
-                _inputField(_password, "Enter Password", obscureText: true),
+                _textWidget(context.tr(I18nKeys.password)),
+                _inputField(_password, context.tr(I18nKeys.enterPassword), obscureText: true),
                 sbH8,
                 GestureDetector(
                   onTap: () => _login(context),
@@ -118,7 +116,11 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     decoration: BoxDecoration(color: Colors.white, borderRadius: 20.borderRadius),
                     alignment: Alignment.center,
-                    child: _textWidget("Log In", color: Colors.black, size: 14),
+                    child: _textWidget(
+                      context.tr(I18nKeys.login).toUpperCase(),
+                      color: Colors.black,
+                      size: 14,
+                    ),
                   ),
                 ),
               ],

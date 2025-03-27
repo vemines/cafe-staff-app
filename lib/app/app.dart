@@ -6,10 +6,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '/configs/configs.dart';
 import '/features/blocs/auth/auth_cubit.dart';
-import '../injection_container.dart';
+import '/injection_container.dart';
 import 'cubits/cubits.dart';
 import 'locale.dart';
 import 'routes.dart';
+import 'theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -18,9 +19,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => ThemeCubit()),
-        BlocProvider(create: (context) => LocaleCubit()),
-        // Provide feature-specific BLoCs using GetIt
+        BlocProvider(create: (context) => sl<ThemeCubit>()),
+        BlocProvider(create: (context) => sl<LocaleCubit>()),
         BlocProvider(create: (context) => sl<AuthCubit>()),
       ],
       child: const _App(),
@@ -50,6 +50,7 @@ class _App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
       theme: theme,
+      darkTheme: AppTheme.darkTheme,
       routerConfig: routes,
       locale: locale,
       supportedLocales: supportedLocale,
@@ -65,7 +66,6 @@ class _App extends StatelessWidget {
             return supportedLocale;
           }
         }
-        // Return the first supported locale
         return supportedLocales.first;
       },
     );

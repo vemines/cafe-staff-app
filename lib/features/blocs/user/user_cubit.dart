@@ -28,7 +28,6 @@ class UserCubit extends Cubit<UserState> {
   }) : super(UserInitial());
 
   Future<void> getAllUsers() async {
-    emit(UserLoading());
     final result = await getAllUsersUseCase(NoParams());
     result.fold(
       (failure) => emit(UserError(failure: failure)),
@@ -57,8 +56,7 @@ class UserCubit extends Cubit<UserState> {
       ),
     );
     result.fold((failure) => emit(UserError(failure: failure)), (user) {
-      List<UserEntity> users = [];
-      if (state is UserLoaded) users = (state as UserLoaded).users;
+      List<UserEntity> users = (state as UserLoaded).users;
       emit(UserLoaded(users: [...users, user]));
     });
   }
@@ -86,9 +84,8 @@ class UserCubit extends Cubit<UserState> {
       ),
     );
     result.fold((failure) => emit(UserError(failure: failure)), (user) {
-      List<UserEntity> users = [];
-      if (state is UserLoaded) users = (state as UserLoaded).users;
-      users = users.map((u) => u.id == user.id ? user : u).toList();
+      List<UserEntity> users =
+          (state as UserLoaded).users.map((u) => u.id == user.id ? user : u).toList();
       emit(UserLoaded(users: users));
     });
   }
@@ -96,9 +93,7 @@ class UserCubit extends Cubit<UserState> {
   Future<void> deleteUser({required String id}) async {
     final result = await deleteUserUseCase(DeleteUserParams(id: id));
     result.fold((failure) => emit(UserError(failure: failure)), (_) {
-      List<UserEntity> users = [];
-      if (state is UserLoaded) users = (state as UserLoaded).users;
-      users = users.where((u) => u.id != id).toList();
+      List<UserEntity> users = (state as UserLoaded).users.where((u) => u.id != id).toList();
       emit(UserLoaded(users: users));
     });
   }

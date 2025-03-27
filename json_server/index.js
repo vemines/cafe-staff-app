@@ -385,57 +385,53 @@ server.get('/areas-with-tables', (req, res) => {
 server.post('/orders', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
+
   if (!hasRole(req, ['serve', 'admin'])) {
     return res.status(403).json({ message: 'Forbidden' });
   }
-  const newOrder = req.body;
 
-  const table = db.get('tables').find({ id: newOrder.tableId }).value();
+  const { tableId, orderItems } = req.body;
+  console.log(req.body);
+
+  if (!tableId) {
+    return res.status(400).json({ message: 'tableId is required' });
+  }
+  if (!orderItems || !Array.isArray(orderItems)) {
+    return res.status(400).json({ message: 'orderItems must be an array' });
+  }
+
+  const table = db.get('tables').find({ id: tableId }).value();
   if (!table) {
     return res.status(400).json({ message: 'Invalid table ID' });
   }
 
-  const existingOrder = db.get('orders').find({ tableId: newOrder.tableId }).value();
+  // --- Simplified POST:  Always create a NEW order ---
+  let newOrder = {
+    id: faker.database.mongodbObjectId(), // Generate a new ID
+    tableId: tableId,
+    timestamp: new Date().toISOString(),
+    createdBy: userId,
+    createdAt: new Date().toISOString(),
+    orderItems: [], // Start empty, will be populated below
+  };
 
-  const aggregatedOrderItems = [];
-  const itemMap = new Map();
-
-  if (existingOrder) {
-    existingOrder.orderItems.forEach((item) => {
-      itemMap.set(item.menuItemId, item.quantity);
-    });
-  }
-
-  for (const item of newOrder.orderItems) {
-    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
+  // Aggregate quantities from the *request* only.
+  for (const item of orderItems) {
+    const menuItem = db.get('menuItems').find({ id: item.id }).value(); // Use item.menuItem
     if (!menuItem) {
-      return res.status(400).json({ message: `Invalid menu item ID: ${item.menuItemId}` });
+      console.log(`Invalid menu item ID: ${item.id}`);
+      return res.status(400).json({ message: `Invalid menu item ID: ${item.id}` });
     }
-
-    if (itemMap.has(item.menuItemId)) {
-      itemMap.set(item.menuItemId, itemMap.get(item.menuItemId) + item.quantity);
-    } else {
-      itemMap.set(item.menuItemId, item.quantity);
-    }
+    // Create the final orderItems array with correct IDs and quantities
+    newOrder.orderItems.push({
+      id: `orderItem-${newOrder.id}-${item.id}`, // Server-generated ID
+      orderId: newOrder.id,
+      menuItemId: item.id, // Correct field
+      quantity: item.quantity,
+    });
   }
 
-  itemMap.forEach((quantity, menuItemId) => {
-    aggregatedOrderItems.push({
-      menuItemId: menuItemId,
-      quantity: quantity,
-    });
-  });
-
-  newOrder.id = faker.database.mongodbObjectId();
-  newOrder.timestamp = new Date().toISOString();
-  newOrder.createdBy = userId;
-  newOrder.createdAt = new Date().toISOString();
-  newOrder.orderItems = aggregatedOrderItems.map((item) => ({
-    ...item,
-    id: `orderItem-${newOrder.id}-${item.menuItemId}`,
-    orderId: newOrder.id,
-  }));
-
+  // Calculate total price
   let totalPrice = 0;
   newOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -444,15 +440,9 @@ server.post('/orders', (req, res) => {
     }
   });
 
-  if (existingOrder) {
-    db.get('orders')
-      .find({ id: existingOrder.id })
-      .assign({ ...existingOrder, ...newOrder, id: existingOrder.id })
-      .write();
-    newOrder.id = existingOrder.id;
-  } else {
-    db.get('orders').push(newOrder).write();
-  }
+  newOrder.totalPrice = parseFloat(totalPrice.toFixed(2));
+
+  db.get('orders').push(newOrder).write(); // Always PUSH a new order
 
   const orderData = {
     id: newOrder.id,
@@ -461,20 +451,13 @@ server.post('/orders', (req, res) => {
       menuItemId: item.menuItemId,
       quantity: item.quantity,
     })),
-    totalPrice: parseFloat(totalPrice.toFixed(2)),
+    totalPrice: newOrder.totalPrice,
   };
 
-  db.get('tables')
-    .find({ id: newOrder.tableId })
-    .assign({ status: 'pending', order: orderData })
-    .write();
+  db.get('tables').find({ id: tableId }).assign({ status: 'pending', order: orderData }).write();
 
-  io.emit('order_created', newOrder);
-  io.emit('table_status_updated', {
-    tableId: newOrder.tableId,
-    status: 'pending',
-    order: orderData,
-  });
+  io.emit('order_updated');
+
   res.status(201).json(newOrder);
 });
 
@@ -495,7 +478,7 @@ server.patch('/orders/:id', (req, res) => {
   const user = db.get('users').find({ id: userId }).value();
   const updatedOrder = req.body;
 
-  if (hasRole(req, ['serve', 'admin']) && updatedOrder.status === 'served') {
+  if (hasRole(req, ['serve', 'cashier']) && updatedOrder.status === 'served') {
     order.servedBy = userId;
     order.servedAt = new Date().toISOString();
 
@@ -525,17 +508,22 @@ server.patch('/orders/:id', (req, res) => {
       .write();
     db.get('orders').find({ id: req.params.id }).assign(order).write();
 
-    io.emit('order_updated', order);
-    io.emit('table_status_updated', { tableId: order.tableId, status: 'served', order: orderData });
+    io.emit('order_updated');
 
     return res.json(order);
-  } else if (hasRole(req, ['cashier', 'admin']) && updatedOrder.status === 'completed') {
+  } else if (hasRole(req, ['cashier']) && updatedOrder.status === 'completed') {
+    const allowedPaymentMethods = db
+      .get('payments')
+      .value()
+      .map((payment) => payment.name);
+
     if (
       !updatedOrder.paymentMethod ||
-      !['cash', 'online payment'].includes(updatedOrder.paymentMethod)
+      !allowedPaymentMethods.includes(updatedOrder.paymentMethod)
     ) {
       return res.status(400).json({ message: 'Invalid payment method' });
     }
+
     let totalPrice = 0;
     order.orderItems.forEach((item) => {
       const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
@@ -560,19 +548,75 @@ server.patch('/orders/:id', (req, res) => {
     updateStatistics(db, completedOrder);
     performMonthlyRollover();
 
-    io.emit('order_completed', completedOrder);
-    io.emit('table_status_updated', {
-      tableId: completedOrder.tableId,
-      status: 'completed',
-      order: null,
-    });
+    io.emit('order_updated');
 
     return res.json(completedOrder);
-  } else {
-    return res.status(403).json({ message: 'Forbidden' });
+  } else if (hasRole(req, ['serve'])) {
+    // Add this condition
+    // Handle order item updates (additions, quantity changes)
+    if (updatedOrder.orderItems) {
+      const itemMap = new Map();
+
+      // Aggregate quantities from existing order
+      order.orderItems.forEach((item) => {
+        itemMap.set(item.menuItemId, (itemMap.get(item.menuItemId) || 0) + item.quantity);
+      });
+
+      // Aggregate quantities from the update request
+      updatedOrder.orderItems.forEach((item) => {
+        const exitItem = itemMap.get(item.menuItem);
+        if (exitItem) {
+          itemMap.set(item.menuItem, (itemMap.get(item.menuItem) || 0) + item.quantity);
+        } else {
+          itemMap.set(item.menuItem, item.quantity);
+        }
+      });
+
+      // Create the final orderItems array
+      order.orderItems = Array.from(itemMap.entries()).map(([menuItemId, quantity]) => ({
+        id: `orderItem-${order.id}-${menuItemId}`, // Consistent ID format
+        orderId: order.id,
+        menuItemId: menuItemId,
+        quantity: quantity,
+      }));
+
+      // Recalculate total price
+      let totalPrice = 0;
+      order.orderItems.forEach((item) => {
+        const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
+        if (menuItem) {
+          totalPrice += menuItem.price * item.quantity;
+        }
+      });
+      order.totalPrice = parseFloat(totalPrice.toFixed(2));
+    }
+
+    db.get('orders').find({ id: req.params.id }).assign(order).write();
+
+    const orderData = {
+      id: order.id,
+      createdAt: order.createdAt,
+      orderItems: order.orderItems.map((item) => ({
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+      })),
+      totalPrice: order.totalPrice,
+      servedBy: order.servedBy,
+      servedAt: order.servedAt,
+    };
+
+    db.get('tables').find({ id: order.tableId }).assign({ order: orderData }).write();
+
+    io.emit('order_updated');
+
+    return res.json(order);
   }
 });
+// --- FILE index.js ---
+// --- FILE index.js ---
+// --- FILE index.js ---
 
+// --- FILE index.js ---
 server.post('/orders/merge-request', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -584,9 +628,10 @@ server.post('/orders/merge-request', (req, res) => {
   const { sourceTableId, targetTableId, splitItemIds } = req.body;
 
   if (!sourceTableId || !targetTableId || !splitItemIds) {
-    return res.status(400).json({
-      message: 'sourceTableId, targetTableId, and splitItemIds are required.',
-    });
+    print(6);
+    return res
+      .status(400)
+      .json({ message: 'sourceTableId, targetTableId, and splitItemIds are required.' });
   }
 
   const sourceTable = db.get('tables').find({ id: sourceTableId }).value();
@@ -595,24 +640,142 @@ server.post('/orders/merge-request', (req, res) => {
   if (!sourceTable || !targetTable) {
     return res.status(404).json({ message: 'One or both tables not found.' });
   }
-  const existingRequest = db
-    .get('mergeRequests')
-    .find({
-      $or: [
-        { sourceTableId: sourceTableId, targetTableId: targetTableId },
-        { sourceTableId: targetTableId, targetTableId: sourceTableId },
-      ],
-    })
-    .value();
-  if (existingRequest) {
-    return res.status(409).json({ message: 'A merge request already exists for these tables.' });
+
+  if (sourceTableId === targetTableId) {
+    return res.status(400).json({ message: 'Target cannot be the same as source.' });
   }
 
+  let sourceOrder = db.get('orders').find({ tableId: sourceTableId }).value();
+  let targetOrder = db.get('orders').find({ tableId: targetTableId }).value();
+
+  if (!sourceOrder) {
+    return res.status(404).json({ message: 'Source has no active order.' });
+  }
+  if (!targetOrder) {
+    //If target no order, create
+    targetOrder = {
+      id: faker.database.mongodbObjectId(),
+      tableId: targetTableId,
+      timestamp: new Date().toISOString(),
+      createdBy: userId,
+      createdAt: new Date().toISOString(),
+      orderItems: [],
+    };
+    db.get('orders').push(targetOrder).write();
+  }
+
+  // Input validation (ensure quantities are valid and don't exceed available)
+  for (const menuItemId in splitItemIds) {
+    if (splitItemIds.hasOwnProperty(menuItemId)) {
+      const quantityToMove = splitItemIds[menuItemId];
+
+      if (quantityToMove === 0) continue;
+
+      if (!Number.isInteger(quantityToMove) || quantityToMove <= 0) {
+        console.log(4, `Invalid quantity for menuItemId: ${menuItemId}`, quantityToMove);
+        return res.status(400).json({ message: `Invalid quantity for menuItemId: ${menuItemId}` });
+      }
+
+      const sourceItem = sourceOrder.orderItems.find((item) => item.menuItemId === menuItemId);
+
+      if (!sourceItem) {
+        console.log(3);
+        return res.status(400).json({ message: 'Menu item not found in source order.' });
+      }
+
+      if (quantityToMove > sourceItem.quantity) {
+        console.log(2);
+        return res.status(400).json({
+          message: `Cannot move ${quantityToMove} of ${menuItemId}. Only ${sourceItem.quantity} available.`,
+        });
+      }
+    }
+  }
+
+  // Store the ORIGINAL state for potential rollback (DEEP COPIES)
+  const originalMergedTable = targetTable.mergedTable || 1;
+  const originalSourceOrderItems = JSON.parse(JSON.stringify(sourceOrder.orderItems));
+  const originalTargetOrderItems = JSON.parse(JSON.stringify(targetOrder.orderItems));
+
+  // --- Prepare for potential empty source order ---
+  const sourceOrderForHistory = {
+    ...sourceOrder, // Copy *before* any further modifications
+    completedAt: new Date().toISOString(),
+    cashierId: null, // No cashier involved in merge request completion
+    totalPrice: sourceOrder.totalPrice, // This might be 0, but that's OK
+    paymentMethod: null, // No payment
+  };
+  // Create a map to track changes to source order items.  Key is menuItemId, value is quantity change.
+  const sourceItemChanges = {};
+
+  // --- Modify orders directly ---
+  Object.keys(splitItemIds).forEach((menuItemId) => {
+    const quantityToMove = splitItemIds[menuItemId];
+
+    // Find and update/add to target order
+    const existingTargetItemIndex = targetOrder.orderItems.findIndex(
+      (item) => item.menuItemId === menuItemId,
+    );
+    if (existingTargetItemIndex !== -1) {
+      const id = targetOrder.orderItems[existingTargetItemIndex].id;
+      targetOrder.orderItems.push({
+        id: faker.string.uuid(), // NEW ID
+        orderId: targetOrder.id,
+        menuItemId: menuItemId,
+        quantity: quantityToMove,
+      });
+    } else {
+      const sourceItem = sourceOrder.orderItems.find((item) => item.menuItemId === menuItemId);
+      targetOrder.orderItems.push({
+        id: faker.string.uuid(), // NEW ID
+        orderId: targetOrder.id,
+        menuItemId: menuItemId,
+        quantity: quantityToMove,
+      });
+    }
+
+    // 2. Track changes to the source order.
+    sourceItemChanges[menuItemId] = (sourceItemChanges[menuItemId] || 0) + quantityToMove;
+  });
+
+  // 3. Apply changes to the source order, iterating safely.
+  for (let i = sourceOrder.orderItems.length - 1; i >= 0; i--) {
+    const item = sourceOrder.orderItems[i];
+    if (sourceItemChanges[item.menuItemId]) {
+      item.quantity -= sourceItemChanges[item.menuItemId];
+      if (item.quantity <= 0) {
+        sourceOrder.orderItems.splice(i, 1);
+      }
+    }
+  }
+
+  // Recalculate total prices
+  sourceOrder.totalPrice = sourceOrder.orderItems.reduce((total, item) => {
+    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
+    return total + (menuItem ? menuItem.price * item.quantity : 0);
+  }, 0);
+  sourceOrder.totalPrice = parseFloat(sourceOrder.totalPrice.toFixed(2));
+
+  targetOrder.totalPrice = targetOrder.orderItems.reduce((total, item) => {
+    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
+    return total + (menuItem ? menuItem.price * item.quantity : 0);
+  }, 0);
+  targetOrder.totalPrice = parseFloat(targetOrder.totalPrice.toFixed(2));
+
+  // Update the 'mergedTable' count on the target table
+  db.get('tables')
+    .find({ id: targetTableId })
+    .assign({ mergedTable: originalMergedTable + 1 })
+    .write();
+
+  // Create the merge request record
   const mergeRequest = {
     id: faker.database.mongodbObjectId(),
     sourceTableId,
     targetTableId,
-    splitItemIds,
+    originalMergedTable,
+    originalSourceOrderItems,
+    originalTargetOrderItems,
     status: 'pending',
     requestedBy: userId,
     requestedAt: new Date().toISOString(),
@@ -620,13 +783,54 @@ server.post('/orders/merge-request', (req, res) => {
 
   db.get('mergeRequests').push(mergeRequest).write();
 
-  const currentMergedTableCount = targetTable.mergedTable || 1;
-  db.get('tables')
-    .find({ id: targetTableId })
-    .assign({ mergedTable: currentMergedTableCount + 1 })
-    .write();
+  // --- Update the orders in the database ---
+  db.get('orders').find({ id: sourceOrder.id }).assign(sourceOrder).write();
+  db.get('orders').find({ id: targetOrder.id }).assign(targetOrder).write();
 
-  io.emit('merge_request_created', mergeRequest);
+  // --- Check and handle empty source order ---  // Moved BEFORE emitting updates
+  if (sourceOrder.orderItems.length === 0) {
+    // db.get('orderHistory').push(sourceOrderForHistory).write(); // Use the copy!
+    db.get('orders').remove({ id: sourceOrder.id }).write();
+
+    db.get('tables')
+      .find({ id: sourceTableId })
+      .assign({ status: 'completed', order: null })
+      .write();
+  }
+
+  // Prepare data for emitting to clients (source order)
+  const sourceOrderData = {
+    id: sourceOrder.id,
+    createdAt: sourceOrder.createdAt,
+    orderItems: sourceOrder.orderItems.map((item) => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+    })),
+    totalPrice: sourceOrder.totalPrice,
+    servedBy: sourceOrder.servedBy,
+    servedAt: sourceOrder.servedAt,
+  };
+
+  // Prepare data for emitting to clients (target order)
+  const targetOrderData = {
+    id: targetOrder.id,
+    createdAt: targetOrder.createdAt,
+    orderItems: targetOrder.orderItems.map((item) => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+    })),
+    totalPrice: targetOrder.totalPrice,
+    servedBy: targetOrder.servedBy,
+    servedAt: targetOrder.servedAt,
+  };
+
+  // update status table
+  if (sourceOrder.orderItems.length != 0) {
+    db.get('tables').find({ id: sourceTableId }).assign({ order: sourceOrderData }).write();
+  }
+
+  db.get('tables').find({ id: targetTableId }).assign({ order: targetOrderData }).write();
+  io.emit('order_updated');
 
   res.status(201).json(mergeRequest);
 });
@@ -639,168 +843,161 @@ server.post('/orders/merge-approve', (req, res) => {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { mergeRequestId } = req.body;
+  const { tableId } = req.body; // Now expecting tableId
 
-  if (!mergeRequestId) {
-    return res.status(400).json({ message: 'mergeRequestId is required.' });
+  if (!tableId) {
+    return res.status(400).json({ message: 'tableId is required.' });
   }
 
-  const mergeRequest = db.get('mergeRequests').find({ id: mergeRequestId }).value();
+  // Find the *pending* merge request associated with this target table.
+  const mergeRequest = db
+    .get('mergeRequests')
+    .find({ targetTableId: tableId, status: 'pending' })
+    .value(); // Find by targetTableId AND status
 
   if (!mergeRequest) {
-    return res.status(404).json({ message: 'Merge request not found.' });
+    return res.status(404).json({ message: 'Merge request not found for this table.' });
+  }
+  // --- Set mergedTable to 1---
+  db.get('tables').find({ id: mergeRequest.targetTableId }).assign({ mergedTable: 1 }).write();
+
+  // --- Cleanup ---
+  db.get('mergeRequests').remove({ id: mergeRequest.id }).write(); // Remove by ID
+
+  // --- Emit & Respond ---
+  io.emit('order_updated');
+  res.status(200).json({ message: 'Merge request approved.' });
+});
+
+server.post('/orders/merge-reject', (req, res) => {
+  const db = router.db;
+  const userId = req.headers.userid;
+
+  if (!hasRole(req, ['cashier', 'admin'])) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
 
-  if (mergeRequest.status !== 'pending') {
-    return res.status(400).json({ message: 'Merge request is not pending.' });
+  const { tableId } = req.body;
+
+  if (!tableId) {
+    return res.status(400).json({ message: 'tableId is required.' });
   }
 
-  const sourceOrder = db.get('orders').find({ tableId: mergeRequest.sourceTableId }).value();
-  let targetOrder = db.get('orders').find({ tableId: mergeRequest.targetTableId }).value();
-  const sourceTable = db.get('tables').find({ id: mergeRequest.sourceTableId }).value();
-  const targetTable = db.get('tables').find({ id: mergeRequest.targetTableId }).value();
+  const mergeRequest = db
+    .get('mergeRequests')
+    .find({ targetTableId: tableId, status: 'pending' })
+    .value();
 
-  if (sourceOrder) {
-    const itemsToMove = sourceOrder.orderItems.filter((item) =>
-      mergeRequest.splitItemIds.includes(item.id),
-    );
-
-    sourceOrder.orderItems = sourceOrder.orderItems.filter(
-      (item) => !mergeRequest.splitItemIds.includes(item.id),
-    );
-
-    if (targetOrder) {
-      targetOrder.orderItems = [
-        ...targetOrder.orderItems,
-        ...itemsToMove.map((item) => ({
-          ...item,
-          orderId: targetOrder.id,
-          id: `orderItem-${targetOrder.id}-${item.menuItemId}`,
-        })),
-      ];
-    } else {
-      targetOrder = {
-        id: faker.database.mongodbObjectId(),
-        tableId: mergeRequest.targetTableId,
-        timestamp: new Date().toISOString(),
-        orderItems: [
-          ...itemsToMove.map((item) => ({
-            ...item,
-            orderId: faker.database.mongodbObjectId(),
-            id: `orderItem-${faker.database.mongodbObjectId()}-${item.menuItemId}`,
-          })),
-        ],
-        createdBy: userId,
-        createdAt: new Date().toISOString(),
-      };
-      db.get('orders').push(targetOrder).write();
-
-      db.get('tables').find({ id: targetOrder.tableId }).assign({ status: 'pending' }).write();
-    }
-
-    db.get('orders').find({ id: sourceOrder.id }).assign(sourceOrder).write();
-    db.get('orders').find({ id: targetOrder.id }).assign(targetOrder).write();
-
-    io.emit('order_updated', sourceOrder);
-    io.emit('order_updated', targetOrder);
+  if (!mergeRequest) {
+    return res.status(404).json({ message: 'No pending merge request found for this table.' });
   }
 
-  let sourceTotalPrice = 0;
-  sourceOrder.orderItems.forEach((item) => {
-    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
-    if (menuItem) {
-      sourceTotalPrice += menuItem.price * item.quantity;
-    }
-  });
+  console.log('Merge Request Found:', mergeRequest);
 
-  const sourceOrderData = {
-    id: sourceOrder.id,
-    createdAt: sourceOrder.createdAt,
-    orderItems: sourceOrder.orderItems.map((item) => ({
-      menuItemId: item.menuItemId,
-      quantity: item.quantity,
-    })),
-    totalPrice: parseFloat(sourceTotalPrice.toFixed(2)),
-    servedBy: sourceOrder.servedBy,
-    servedAt: sourceOrder.servedAt,
-  };
-
-  let targetTotalPrice = 0;
-  targetOrder.orderItems.forEach((item) => {
-    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
-    if (menuItem) {
-      targetTotalPrice += menuItem.price * item.quantity;
-    }
-  });
-
-  const targetOrderData = {
-    id: targetOrder.id,
-    createdAt: targetOrder.createdAt,
-    orderItems: targetOrder.orderItems.map((item) => ({
-      menuItemId: item.menuItemId,
-      quantity: item.quantity,
-    })),
-    totalPrice: parseFloat(targetTotalPrice.toFixed(2)),
-    servedBy: targetOrder.servedBy,
-    servedAt: targetOrder.servedAt,
-  };
-
+  // --- 1. Restore 'mergedTable' on the target table ---
   db.get('tables')
     .find({ id: mergeRequest.targetTableId })
-    .assign({ mergedTable: targetTable.mergedTable > 1 ? targetTable.mergedTable - 1 : 1 })
+    .assign({ mergedTable: mergeRequest.originalMergedTable })
     .write();
-  db.get('mergeRequests').remove({ id: mergeRequestId }).write();
 
-  if (sourceOrder && sourceOrder.orderItems.length === 0) {
-    db.get('orderHistory')
-      .push({
-        ...sourceOrder,
-        completedAt: new Date().toISOString(),
-        cashierId: userId,
-        totalPrice: sourceTotalPrice,
-        paymentMethod: null,
+  // --- 2. Restore orders ---  SIMPLIFIED!
+  const sourceOrder = db.get('orders').find({ tableId: mergeRequest.sourceTableId }).value();
+  if (sourceOrder) {
+    db.get('orders')
+      .find({ tableId: mergeRequest.sourceTableId })
+      .assign({
+        orderItems: mergeRequest.originalSourceOrderItems,
+        totalPrice: getTotalPrice(mergeRequest.originalSourceOrderItems, db),
       })
       .write();
-    db.get('orders').remove({ id: sourceOrder.id }).write();
-    db.get('tables')
-      .find({ id: mergeRequest.sourceTableId })
-      .assign({ status: 'completed', order: null })
-      .write();
-    io.emit('table_status_updated', {
-      tableId: mergeRequest.sourceTableId,
-      status: 'completed',
-      order: null,
-    });
   } else {
+    const newSourceOrder = {
+      id: mergeRequest.sourceTableId,
+      tableId: mergeRequest.sourceTableId,
+      timestamp: mergeRequest.requestedAt,
+      createdAt: mergeRequest.requestedAt,
+      createdBy: mergeRequest.requestedBy,
+      orderItems: JSON.parse(JSON.stringify(mergeRequest.originalSourceOrderItems)),
+      totalPrice: getTotalPrice(mergeRequest.originalSourceOrderItems, db),
+    };
+    db.get('orders').push(newSourceOrder).write();
+  }
+
+  const targetOrder = db
+    .get('orders')
+    .find({ id: mergeRequest.originalTargetOrderItems[0]?.orderId })
+    .value();
+  if (targetOrder) {
+    db.get('orders')
+      .find({ id: mergeRequest.originalTargetOrderItems[0]?.orderId })
+      .assign({
+        orderItems: mergeRequest.originalTargetOrderItems,
+        totalPrice: getTotalPrice(mergeRequest.originalTargetOrderItems, db),
+      })
+      .write();
+  }
+
+  const sourceOrderData = sourceOrder
+    ? {
+        id: sourceOrder.id,
+        createdAt: sourceOrder.createdAt,
+        orderItems: sourceOrder.orderItems.map((item) => ({
+          menuItemId: item.menuItemId,
+          quantity: item.quantity,
+        })),
+        totalPrice: sourceOrder.totalPrice,
+        servedBy: sourceOrder.servedBy,
+        servedAt: sourceOrder.servedAt,
+      }
+    : null;
+
+  const targetOrderData = targetOrder
+    ? {
+        id: targetOrder.id,
+        createdAt: targetOrder.createdAt,
+        orderItems: targetOrder.orderItems.map((item) => ({
+          menuItemId: item.menuItemId,
+          quantity: item.quantity,
+        })),
+        totalPrice: targetOrder.totalPrice,
+        servedBy: targetOrder.servedBy,
+        servedAt: targetOrder.servedAt,
+      }
+    : null;
+  //update table
+  if (sourceOrder) {
     db.get('tables')
       .find({ id: mergeRequest.sourceTableId })
       .assign({ order: sourceOrderData })
       .write();
   }
-
-  if (sourceTable.status == 'served') {
-    db.get('tables')
-      .find({ id: mergeRequest.targetTableId })
-      .assign({ status: 'served', order: targetOrderData })
-      .write();
-    io.emit('table_status_updated', {
-      tableId: mergeRequest.targetTableId,
-      status: 'served',
-      order: targetOrderData,
-    });
-  } else {
+  if (targetOrder) {
     db.get('tables')
       .find({ id: mergeRequest.targetTableId })
       .assign({ order: targetOrderData })
       .write();
   }
-  io.emit('merge_request_approved', {
-    sourceTableId: sourceTable.id,
-    targetTableId: targetTable.id,
-  });
-  res.status(200).json({ message: 'Orders merged successfully.' });
+
+  // --- 3. Remove the merge request ---
+  db.get('mergeRequests').remove({ id: mergeRequest.id }).write();
+
+  // --- 4. Emit rejection ---
+  io.emit('order_updated');
+  res.status(200).json({ message: 'Merge request rejected successfully.' });
 });
 
+function getTotalPrice(orderItems, db) {
+  let totalPrice = 0;
+  orderItems.forEach((item) => {
+    const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
+    if (menuItem) {
+      totalPrice += menuItem.price * item.quantity;
+    }
+  });
+
+  return parseFloat(totalPrice.toFixed(2));
+}
+// --- FILE index.js ---
 server.post('/orders/split', (req, res) => {
   const db = router.db;
   const userId = req.headers.userid;
@@ -808,8 +1005,10 @@ server.post('/orders/split', (req, res) => {
   if (!hasRole(req, ['serve', 'admin'])) {
     return res.status(403).json({ message: 'Forbidden' });
   }
+
   const { sourceTableId, targetTableId, splitItemIds } = req.body;
-  if (!sourceTableId || !targetTableId || !splitItemIds || !Array.isArray(splitItemIds)) {
+
+  if (!sourceTableId || !targetTableId || !splitItemIds) {
     return res.status(400).json({ message: 'Missing or invalid parameters' });
   }
 
@@ -825,52 +1024,109 @@ server.post('/orders/split', (req, res) => {
     return res.status(404).json({ message: 'Target table not found' });
   }
 
-  const sourceOrderItems = sourceOrder.orderItems;
-  const validSplitItems = splitItemIds.every((itemId) =>
-    sourceOrderItems.some((item) => item.id === itemId),
-  );
+  // Target table MUST be empty
+  if (targetTable.status !== 'completed') {
+    return res.status(400).json({ message: 'Target table is not empty' });
+  }
+
+  // Prevent splitting to the same table
+  if (sourceTableId === targetTableId) {
+    return res.status(400).json({ message: 'Target cannot be the same as the source' });
+  }
+
+  // Validate splitItemIds (menuItemId: quantity)
+  const validSplitItems = Object.keys(splitItemIds).every((menuItemId) => {
+    const quantity = splitItemIds[menuItemId];
+
+    // Skip items with quantity 0
+    if (quantity === 0) {
+      return true; // Skip, not invalid
+    }
+
+    const sourceOrderItems = sourceOrder.orderItems.filter(
+      (item) => item.menuItemId === menuItemId,
+    );
+
+    if (sourceOrderItems.length === 0) {
+      return false; // Item not found
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return false; // Invalid quantity
+    }
+
+    const totalQuantity = sourceOrderItems.reduce((acc, item) => acc + item.quantity, 0);
+    return quantity <= totalQuantity;
+  });
 
   if (!validSplitItems) {
+    console.log(4);
     return res.status(400).json({ message: 'One or more split item IDs are invalid' });
   }
 
-  if (sourceTableId === targetTableId) {
-    return res.status(400).json({ message: 'Target can not the same Source' });
-  }
+  // --- Create a NEW target order ---
+  const newTargetOrderId = faker.database.mongodbObjectId();
+  const itemsToMove = [];
 
-  let targetOrder = db.get('orders').find({ tableId: targetTableId }).value();
+  // Process splitItemIds
+  Object.keys(splitItemIds).forEach((menuItemId) => {
+    const quantityToMoveTotal = splitItemIds[menuItemId];
+    let quantityMoved = 0;
 
-  const newOrderId = faker.database.mongodbObjectId();
-  if (!targetOrder) {
-    targetOrder = {
-      id: newOrderId,
-      tableId: targetTableId,
-      timestamp: new Date().toISOString(),
-      orderItems: [],
-      createdBy: userId,
-      createdAt: new Date().toISOString(),
-    };
-    db.get('orders').push(targetOrder).write();
+    const sourceOrderItems = sourceOrder.orderItems.filter(
+      (item) => item.menuItemId === menuItemId,
+    );
 
-    db.get('tables').find({ id: targetTableId }).assign({ status: 'pending' }).write();
-    io.emit('table_status_updated', { tableId: targetTableId, status: 'pending' });
-  }
+    for (const item of sourceOrderItems) {
+      if (quantityMoved >= quantityToMoveTotal) break; // Moved enough
 
-  const itemsToMove = sourceOrder.orderItems.filter((item) => splitItemIds.includes(item.id));
+      const quantityToMoveFromThisItem = Math.min(
+        item.quantity,
+        quantityToMoveTotal - quantityMoved,
+      );
 
-  sourceOrder.orderItems = sourceOrder.orderItems.filter((item) => !splitItemIds.includes(item.id));
+      itemsToMove.push({
+        ...item, // Copy existing orderItem data
+        id: `orderItem-${newTargetOrderId}-${item.menuItemId}`, // New unique ID
+        orderId: newTargetOrderId,
+        quantity: quantityToMoveFromThisItem,
+      });
 
-  targetOrder.orderItems = [
-    ...targetOrder.orderItems,
-    ...itemsToMove.map((item) => ({
-      ...item,
-      orderId: targetOrder.id,
-      id: `orderItem-${targetOrder.id}-${item.menuItemId}`,
-    })),
-  ];
+      quantityMoved += quantityToMoveFromThisItem;
+    }
+  });
 
+  // Deduct moved quantities from source order
+  sourceOrder.orderItems.forEach((item) => {
+    const movedItem = itemsToMove.find((moveItem) => moveItem.menuItemId === item.menuItemId);
+    if (movedItem) {
+      item.quantity -= movedItem.quantity; // Reduce quantity
+    }
+  });
+  sourceOrder.orderItems = sourceOrder.orderItems.filter((item) => item.quantity > 0);
+
+  const newTargetOrder = {
+    id: newTargetOrderId,
+    tableId: targetTableId,
+    timestamp: sourceOrder.timestamp, // Use source order's timestamp
+    createdAt: sourceOrder.createdAt, // Use source order's createdAt
+    createdBy: sourceOrder.createdBy, // Or use userId
+    orderItems: itemsToMove,
+  };
+
+  // --- Prepare for potential empty source order ---
+  const sourceOrderForHistory = {
+    ...sourceOrder, // Copy *before* any further modifications
+    completedAt: new Date().toISOString(),
+    cashierId: userId,
+    totalPrice: sourceOrder.totalPrice, // Capture original price
+    paymentMethod: null, // No payment
+  };
+
+  // --- Update Database ---
+  db.get('orders').push(newTargetOrder).write();
   db.get('orders').find({ id: sourceOrder.id }).assign(sourceOrder).write();
-  db.get('orders').find({ id: targetOrder.id }).assign(targetOrder).write();
+  db.get('tables').find({ id: targetTableId }).assign({ status: 'pending' }).write();
 
   let sourceTotalPrice = 0;
   sourceOrder.orderItems.forEach((item) => {
@@ -893,7 +1149,7 @@ server.post('/orders/split', (req, res) => {
   };
 
   let targetTotalPrice = 0;
-  targetOrder.orderItems.forEach((item) => {
+  newTargetOrder.orderItems.forEach((item) => {
     const menuItem = db.get('menuItems').find({ id: item.menuItemId }).value();
     if (menuItem) {
       targetTotalPrice += menuItem.price * item.quantity;
@@ -901,89 +1157,39 @@ server.post('/orders/split', (req, res) => {
   });
 
   const targetOrderData = {
-    id: targetOrder.id,
-    createdAt: targetOrder.createdAt,
-    orderItems: targetOrder.orderItems.map((item) => ({
+    id: newTargetOrder.id,
+    createdAt: newTargetOrder.createdAt,
+    orderItems: newTargetOrder.orderItems.map((item) => ({
       menuItemId: item.menuItemId,
       quantity: item.quantity,
     })),
     totalPrice: parseFloat(targetTotalPrice.toFixed(2)),
-    servedBy: targetOrder.servedBy,
-    servedAt: targetOrder.servedAt,
+    servedBy: newTargetOrder.servedBy,
+    servedAt: newTargetOrder.servedAt,
   };
 
-  db.get('tables').find({ id: sourceTableId }).assign({ order: sourceOrderData }).write();
-  db.get('tables').find({ id: targetTableId }).assign({ order: targetOrderData }).write();
-
-  io.emit('order_updated', sourceOrder);
-  io.emit('order_updated', targetOrder);
-  io.emit('order_splitted', {
-    sourceTableId,
-    targetTableId,
-  });
-
+  // --- Check and handle empty source order ---
   if (sourceOrder.orderItems.length === 0) {
-    db.get('orderHistory')
-      .push({
-        ...sourceOrder,
-        completedAt: new Date().toISOString(),
-        cashierId: userId,
-        totalPrice: sourceTotalPrice,
-        paymentMethod: null,
-      })
-      .write();
+    // db.get('orderHistory').push(sourceOrderForHistory).write(); // Use the copy!
     db.get('orders').remove({ id: sourceOrder.id }).write();
+
     db.get('tables')
-      .find({ id: sourceOrder.tableId })
+      .find({ id: sourceTableId })
       .assign({ status: 'completed', order: null })
       .write();
-    io.emit('table_status_updated', {
-      tableId: sourceOrder.tableId,
-      status: 'completed',
-      order: null,
-    });
+  } else {
+    db.get('tables').find({ id: sourceTableId }).assign({ order: sourceOrderData }).write();
   }
 
+  // Target Table
+  io.emit('order_updated');
+
+  // --- Response ---
   res.status(200).json({
     message: 'Order split successfully',
-    sourceOrder: sourceOrder,
-    targetOrder: targetOrder,
+    sourceOrder: sourceOrder, // Updated source order
+    targetOrder: newTargetOrder, // New target order
   });
-});
-
-server.post('/orders/merge-reject', (req, res) => {
-  const db = router.db;
-  const userId = req.headers.userid;
-
-  if (!hasRole(req, ['cashier', 'admin'])) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-
-  const { mergeRequestId } = req.body;
-
-  if (!mergeRequestId) {
-    return res.status(400).json({ message: 'mergeRequestId is required.' });
-  }
-
-  const mergeRequest = db.get('mergeRequests').find({ id: mergeRequestId }).value();
-
-  if (!mergeRequest) {
-    return res.status(404).json({ message: 'Merge request not found.' });
-  }
-
-  if (mergeRequest.status !== 'pending') {
-    return res.status(400).json({ message: 'Merge request is not pending.' });
-  }
-  const targetTable = db.get('tables').find({ id: mergeRequest.targetTableId }).value();
-  db.get('tables')
-    .find({ id: mergeRequest.targetTableId })
-    .assign({ mergedTable: targetTable.mergedTable > 1 ? targetTable.mergedTable - 1 : 1 })
-    .write();
-
-  db.get('mergeRequests').remove({ id: mergeRequestId }).write();
-  io.emit('merge_request_rejected', { mergeRequestId });
-
-  res.status(200).json({ message: 'Merge request rejected.' });
 });
 
 server.post('/feedback', (req, res) => {
@@ -1502,7 +1708,7 @@ server.get('/orderHistory', (req, res) => {
     const tableName = table ? table.name : null;
 
     const cashier = db.get('users').find({ id: order.cashierId }).value();
-    const cashierName = cashier ? cashier.username : null;
+    const cashierName = cashier ? cashier.fullname : null;
 
     const payment = db.get('payments').find({ name: order.paymentMethod }).value(); //or find id
     const paymentInfo = payment

@@ -1,4 +1,3 @@
-// --- FILE: lib/core/errors/dio_exception_handle.dart ---
 part of 'exceptions.dart';
 
 Never handleDioException(DioException e, StackTrace s, String at) {

@@ -7,7 +7,6 @@ import 'order_item_model.dart';
 class OrderHistoryModel extends OrderHistoryEntity {
   const OrderHistoryModel({
     required super.id,
-    required super.orderId,
     required super.tableName,
     required super.paymentMethod,
     required super.createdAt,
@@ -21,7 +20,6 @@ class OrderHistoryModel extends OrderHistoryEntity {
   factory OrderHistoryModel.fromJson(Map<String, dynamic> json) {
     return OrderHistoryModel(
       id: json[OrderHistoryApiMap.id] as String,
-      orderId: json[OrderHistoryApiMap.orderId] as String,
       tableName: json[OrderHistoryApiMap.tableName],
       paymentMethod: json[OrderHistoryApiMap.paymentMethod] as String,
       createdAt: dateParse(json[kCreatedAt]),
@@ -38,7 +36,6 @@ class OrderHistoryModel extends OrderHistoryEntity {
   factory OrderHistoryModel.fromEntity(OrderHistoryEntity entity) {
     return OrderHistoryModel(
       id: entity.id,
-      orderId: entity.orderId,
       tableName: entity.tableName,
       paymentMethod: entity.paymentMethod,
       createdAt: entity.createdAt,
@@ -65,7 +62,6 @@ class OrderHistoryModel extends OrderHistoryEntity {
   }) {
     return OrderHistoryModel(
       id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
       tableName: tableName ?? this.tableName,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
@@ -80,7 +76,6 @@ class OrderHistoryModel extends OrderHistoryEntity {
   Map<String, dynamic> toJson() {
     return {
       OrderHistoryApiMap.id: id,
-      OrderHistoryApiMap.orderId: orderId,
       OrderHistoryApiMap.tableName: tableName,
       OrderHistoryApiMap.paymentMethod: paymentMethod,
       kCreatedAt: createdAt.toIso8601String(),

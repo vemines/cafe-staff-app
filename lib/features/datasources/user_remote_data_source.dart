@@ -43,7 +43,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'UserRemoteDataSource.getAllUsers');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'UserRemoteDataSource.getAllUsers',
+      );
     }
   }
 
@@ -55,7 +59,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'UserRemoteDataSource.getUserById');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'UserRemoteDataSource.getUserById',
+      );
     }
   }
 
@@ -86,9 +94,13 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       final user = UserModel.fromJson(response.data);
       return user;
     } on DioException catch (e, s) {
-      handleDioException(e, s, 'AuthRemoteDataSource.register');
+      handleDioException(e, s, 'AuthRemoteDataSource.createUser');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'UserRemoteDataSource.createUser',
+      );
     }
   }
 
@@ -118,7 +130,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'UserRemoteDataSource.updateUser');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'UserRemoteDataSource.updateUser',
+      );
     }
   }
 
@@ -129,7 +145,11 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     } on DioException catch (e, s) {
       handleDioException(e, s, 'UserRemoteDataSource.deleteUser');
     } catch (e, s) {
-      throw ServerException(message: e.toString(), stackTrace: s);
+      throw ServerException(
+        message: e.toString(),
+        stackTrace: s,
+        at: 'UserRemoteDataSource.deleteUser',
+      );
     }
   }
 }

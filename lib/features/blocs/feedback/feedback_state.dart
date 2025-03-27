@@ -16,19 +16,6 @@ class FeedbackInitial extends FeedbackState {
 
 class FeedbackLoading extends FeedbackState {}
 
-class FeedbackLoadingMore extends FeedbackState {
-  const FeedbackLoadingMore({required super.feedbacks});
-}
-
-class FeedbackCreated extends FeedbackState {
-  final FeedbackEntity feedback;
-
-  const FeedbackCreated({required this.feedback});
-
-  @override
-  List<Object> get props => [feedback];
-}
-
 class FeedbackLoaded extends FeedbackState {
   const FeedbackLoaded({required super.feedbacks, required super.hasMore});
 }
